@@ -79,4 +79,15 @@ void textcolor(int x)
 	mau = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(mau, x);
 }
-
+void HideCursor() {
+	CONSOLE_CURSOR_INFO cursorInfo;
+	GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+	cursorInfo.bVisible = FALSE;  // ?n con tr?
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+}
+void ShowCursor() {
+	CONSOLE_CURSOR_INFO cursorInfo;
+	GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+	cursorInfo.bVisible = TRUE;   // Hi?n th? l?i con tr?
+	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+}
