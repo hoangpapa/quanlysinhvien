@@ -6,6 +6,14 @@ using namespace std;
 int xD = 5, yD = 0, wD = 112, hD = 27, tD = 15;//thong so cho box default 
 int x = 50, y = 5;
 int xL = 7, yL = 3, wL = 25, hL = 2;//thong so cho box list
+const int CELL_WIDTH = 20; // Do rong cua o trong bang
+const int ROW_HEIGHT = 2;
+int	soDongMoiTrang = 20;
+int xLB = 37, yLB = 4, wLB = 78, hLB = 22;
+#define KEY_UP 72
+#define KEY_DOWN 80
+#define KEY_ENTER 13
+#define KEY_ESC 27
 
 
 void boxDefault(int x, int y, int w, int h, int text_color,string nd) {
@@ -170,6 +178,83 @@ bool xacNhanThoat() {
 				gotoXY(textX, textY);
 				cout << options[i];
 			}
+		}
+	}
+}
+
+
+void drawListBox(int x, int y, int w, int h, string data[][4], int soDuLieu, int soTrang, int selectedRow, int trangBefore, const string tieuDe[], int ntieuDe) {
+	gotoXY(x, y);
+	for (int i = 0; i < ntieuDe; i++) {
+		printf("%-*s", w / ntieuDe, tieuDe[i].c_str());
+	}
+	cout << endl;
+
+	int start = soTrang * trangBefore;
+	int end = min(start + trangBefore, soDuLieu);
+	for (int i = start; i < end; i++) {
+		gotoXY(x, y + 1 + (i - start));
+		if (i == selectedRow) {
+			textcolor(14);
+		}
+		for (int j = 0; j < ntieuDe; j++) {
+			printf("%-*s", w / ntieuDe, data[i][j].c_str());
+		}
+		if (i == selectedRow) {
+			textcolor(11);
+		}
+		cout << endl;
+	}
+}
+void xoa_noi_dung_khung() {
+	int x = 36, y = 4; // T?a d? góc trên cùng c?a khung
+	int width = 78, height = 20; // Kích thu?c khung
+	// Xóa n?i dung bên trong khung (không xóa du?ng vi?n)
+	textcolor(0);
+	for (int iy = y + 1; iy <= y + height; iy++) { // Duy?t t? dòng du?i du?ng vi?n trên
+		for (int ix = x + 1; ix < x + width; ix++) { // Duy?t t? c?t bên ph?i du?ng vi?n trái
+			gotoXY(ix, iy);
+			cout << " ";
+		}
+	}
+	SetColor(7);
+}
+
+
+int listBox( string data[][4], int soDuLieu,  string tieuDe[4], int ntieuDe) {
+	int totalRows = soDuLieu;
+	int sttOfTrang = 0;
+	int hangNgangdangChon = 0;
+	ShowCur(false);
+	while (true) {
+
+		drawListBox(xLB, yLB, wLB, hLB, data, soDuLieu, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe);
+
+		int key = _getch();
+		if (key == KEY_UP) {
+			if (hangNgangdangChon > 0) {
+				hangNgangdangChon--;
+				if (hangNgangdangChon < sttOfTrang * soDongMoiTrang) {
+					sttOfTrang--;
+				}
+			}
+		}
+		else if (key == KEY_DOWN) {
+			if (hangNgangdangChon < totalRows - 1) {
+				hangNgangdangChon++;
+				if (hangNgangdangChon >= (sttOfTrang + 1) * soDongMoiTrang) {
+					sttOfTrang++;
+					xoa_noi_dung_khung();
+				}
+			}
+		}
+		else if (key == KEY_ENTER) {
+			ShowCur(true);
+			return hangNgangdangChon;
+		}
+		else if (key == KEY_ESC) {
+			ShowCur(true);
+			return -1;
 		}
 	}
 }
