@@ -15,7 +15,6 @@ int xLB = 37, yLB = 4, wLB = 78, hLB = 22;
 #define KEY_ENTER 13
 #define KEY_ESC 27
 
-
 void boxDefault(int x, int y, int w, int h, int text_color,string nd) {
 	SetColor(text_color);
 	if (h <= 1 || w <= 1) return;
@@ -181,31 +180,6 @@ bool xacNhanThoat() {
 		}
 	}
 }
-
-
-void drawListBox(int x, int y, int w, int h, string data[][4], int soDuLieu, int soTrang, int selectedRow, int trangBefore, const string tieuDe[], int ntieuDe) {
-	gotoXY(x, y);
-	for (int i = 0; i < ntieuDe; i++) {
-		printf("%-*s", w / ntieuDe, tieuDe[i].c_str());
-	}
-	cout << endl;
-
-	int start = soTrang * trangBefore;
-	int end = min(start + trangBefore, soDuLieu);
-	for (int i = start; i < end; i++) {
-		gotoXY(x, y + 1 + (i - start));
-		if (i == selectedRow) {
-			textcolor(14);
-		}
-		for (int j = 0; j < ntieuDe; j++) {
-			printf("%-*s", w / ntieuDe, data[i][j].c_str());
-		}
-		if (i == selectedRow) {
-			textcolor(11);
-		}
-		cout << endl;
-	}
-}
 void xoa_noi_dung_khung() {
 	int x = 36, y = 4; // T?a d? góc trên cùng c?a khung
 	int width = 78, height = 20; // Kích thu?c khung
@@ -219,6 +193,38 @@ void xoa_noi_dung_khung() {
 	}
 	SetColor(7);
 }
+
+
+
+void drawListBox(int x, int y, int w, int h, string data[][4], int soDuLieu, int soTrang, int chonHang, int trangBefore, const string tieuDe[], int ntieuDe) {
+	int khoangCachMoiCot[] = { w * 0.1, w * 0.2, w * 0.5, w * 0.1, w * 0.1 }; 
+	gotoXY(x, y);
+	printf("%-*s", khoangCachMoiCot[0], "STT");
+	for (int i = 0; i < ntieuDe; i++) {
+		printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
+	}
+	cout << endl;
+	int start = soTrang * trangBefore;
+	int end = min(start + trangBefore, soDuLieu);
+	for (int i = start; i < end; i++) {
+		gotoXY(x, y + 1 + (i - start));
+		if (i == chonHang) {
+			textcolor(200);
+			SetColor(0);
+		}
+		printf("%-*d", khoangCachMoiCot[0], i + 1);
+		for (int j = 0; j < ntieuDe; j++) {
+			printf("%-*s", khoangCachMoiCot[j + 1], data[i][j].c_str());
+		}
+		if (i == chonHang) {
+			textcolor(7);
+		}
+		cout << endl;
+	}
+}
+
+
+
 
 
 int listBox( string data[][4], int soDuLieu,  string tieuDe[4], int ntieuDe) {

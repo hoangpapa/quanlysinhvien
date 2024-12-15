@@ -7,6 +7,7 @@
 #include <math.h>
 #include <iomanip>
 //#include <bits/stdc++.h>
+
 using namespace std;
 const int MAXLOPSV = 10000;
 const int MAX_LTC = 10000;   // S? lu?ng l?p t�n ch? t?i da
@@ -1765,95 +1766,35 @@ int countMonHoc(treeMH root) {
 
 
 void NhapMonHoc(treeMH& root, List_LTC& dsltc) {
+    system("cls");
     boxDefault(xD, yD, wD, hD, tD, "NHAP MON HOC");
     boxVuong(35, 3, 80, 22, 15);
     string nd[] = { "Them mon hoc", " Xoa mon hoc", "Hieu chinh mon hoc", "Hien thi DSMH",  "Thoat" };
         int index = 0;
-        /*string data[1000][4];*/
-        string data[][4] = {
-      {"300000", "CTDL", "3", "1"},
-      {"500000", "AN NINH MANG", "2", "0"},
-      {"750003", "ANH VAN A11", "2", "0"},
-      {"812514", "AN TOAN HE THONG", "3", "1"},
-      {"123456", "TOAN ROI RAC", "2", "1"},
-      {"234567", "LAP TRINH C++", "3", "1"},
-      {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"},
-      {"567890", "CAU TRUC DU LIEU", "2", "0"},
-      {"678901", "HOC MAY", "3", "1"},
-      {"789012", "XU LY NGON NG", "3", "1"},
-      {"890123", "KHOA HOC DU LIEU", "3", "0"},
-      {"901234", "PHAN TICH DU LIEU", "3", "1"},
-      {"012345", "PHAN TICH THIET KE ", "2", "0"},
-      {"123458", "LAP TRINH WEB", "3", "1"},
-        {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"},
-      {"567890", "CAU TRUC DU LIEU", "2", "0"},
-      {"678901", "HOC MAY", "3", "1"},
-      {"789012", "XU LY NGON ", "3", "1"},
-      {"890123", "KHOA HOC DU LIEU", "3", "0"},
-      {"901234", "PHAN TICH DU LIEU", "3", "1"},
-      {"012345", "PHAN TICH THIET KE ", "2", "0"},
-      {"123458", "LAP TRINH WEB", "3", "1"},
-      {"300000", "CTDL", "3", "1"},
-      {"500000", "AN NINH MANG", "2", "0"},
-      {"750003", "ANH VAN A11", "2", "0"},
-      {"812514", "AN TOAN HE THONG", "3", "1"},
-      {"123456", "TOAN ROI RAC", "2", "1"},
-      {"234567", "LAP TRINH C++", "3", "1"},
-      {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"},
-      {"567890", "CAU TRUC DU LIEU", "2", "0"},
-      { "890123", "KHOA HOC DU LIEU", "3", "0" },
-      {"901234", "PHAN TICH DU LIEU", "3", "1"},
-      {"012345", "PHAN TICH THIET KE ", "2", "0"},
-      {"123458", "LAP TRINH WEB", "3", "1"},
-      {"300000", "CTDL", "3", "1"},
-      {"500000", "AN NINH MANG", "2", "0"},
-      {"750003", "ANH VAN A11", "2", "0"},
-      {"812514", "AN TOAN HE THONG", "3", "1"},
-      {"123456", "TOAN ROI RAC", "2", "1"},
-      {"234567", "LAP TRINH C++", "3", "1"},
-      {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"},
-      {"567890", "CAU TRUC DU LIEU", "2", "0"},
-      {"123456", "TOAN ROI RAC", "2", "1"},
-      {"234567", "LAP TRINH C++", "3", "1"},
-      {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"},
-      {"567890", "CAU TRUC DU LIEU", "2", "0"},
-      { "890123", "KHOA HOC DU LIEU", "3", "0" },
-      {"901234", "PHAN TICH DU LIEU", "3", "1"},
-      {"012345", "PHAN TICH THIET KE ", "2", "0"},
-      {"123458", "LAP TRINH WEB", "3", "1"},
-      {"300000", "CTDL", "3", "1"},
-      {"500000", "AN NINH MANG", "2", "0"},
-      {"750003", "ANH VAN A11", "2", "0"},
-      {"812514", "AN TOAN HE THONG", "3", "1"},
-      {"123456", "TOAN ROI RAC", "2", "1"},
-      {"234567", "LAP TRINH C++", "3", "1"},
-      {"345678", "TRI TUE NHAN TAO", "3", "1"},
-      {"456789", "CO SO DU LIEU", "3", "1"}
-        };
-        /*treeToArray(root, data, index);*/
+ 
+        string data[250][4];
+        treeToArray(root, data, index);
         int nTieuDe = 4;
-        int soDuLieu = /*countMonHoc(root);*/100;
+        int soDuLieu = countMonHoc(root);
         string tieuDe[4] = { "MA MON", "TEN MON", "STCLT", "STCTH" };
-        int selectedRow = listBox(data, soDuLieu, tieuDe, nTieuDe);
-        cout << selectedRow << endl;
     while (true) {
-        int selectedRow = listBox(data, soDuLieu, tieuDe, nTieuDe);
-        cout << selectedRow << endl;
-        int luachon= thanhSangListBox(xL, yL, wL, hL, 11, 14, nd, 5);
+        
+        int luachon = thanhSangListBox(xL, yL, wL, hL, 7, 14, nd, 5);
+        int selectedRow;
         switch (luachon) {
         case 0:
             addMonHoc(root);
             break;
         case 1:
+            selectedRow = listBox(data, soDuLieu, tieuDe, nTieuDe);
+            cout << selectedRow << endl;
             Xoa_MH(root, dsltc);
+             
             break;
         case 2:
             updateMH(root);
+             selectedRow = listBox(data, soDuLieu, tieuDe, nTieuDe);
+            cout << selectedRow << endl;
             break;
         case 3:
             if (isEmpty(root)) {
@@ -1875,19 +1816,6 @@ void NhapMonHoc(treeMH& root, List_LTC& dsltc) {
         }
         }
     }
-int currentMAMH(treeMH root) {
-    if (root == NULL) return 0;
-    else if (root->left != NULL && root->right != NULL) {
-        return currentMAMH(root->left) + currentMAMH(root->right);
-    }
-    else if (root->left == NULL && root->right != NULL) {
-        return currentMAMH(root->right);
-    }
-    else if (root->left != NULL && root->right == NULL) {
-        return currentMAMH(root->left);
-    }
-    else return 1;
-}
 
 
 treeMH _findTenMH(treeMH root, string maMH) {
@@ -2504,19 +2432,12 @@ void Nhap_In_Diem(List_LTC& dsltc, treeMH& root, DS_LOPSV& dsLop) {
 }
 
 int main() {
+    /*setConsoleBackgroundWhite();*/
     DS_LOPSV dsLop;  // Khởi tạo danh sách lớp
     List_LTC dsltc;  // Khoi tao danh sach lop tin chi
     treeMH root = NULL; //Khoi tao cay mon hoc
     MonHoc mh1;
-    root = new nodeMH{ {"500000", "AN NINH MANG", 2, 0}, 0, NULL, NULL };
-    root->left = new nodeMH{ {"300000", "AN TOAN VA BAO MAT HE THONG", 3, 1}, 0, NULL, NULL };
-    root->right = new nodeMH{ {"750003", "ANH VAN A11", 2, 0}, 0, NULL, NULL };
-    root->left->left = new nodeMH{ {"100001", "TOAN ROI RAC", 3, 1}, 0, NULL, NULL };
-    root->left->right = new nodeMH{ {"200002", "CAU TRUC DU LIEU", 4, 1}, 0, NULL, NULL };
-    root->right->left = new nodeMH{ {"800004", "GIAO TIEP DOANH NGHIEP", 2, 0}, 0, NULL, NULL };
-    root->right->right = new nodeMH{ {"900005", "KY NANG MEM", 1, 0}, 0, NULL, NULL };
-    root->right->left->right = new nodeMH{ {"600006", "NHAP MON LAP TRINH", 3, 1}, 0, NULL, NULL };
-
+    
     mh1.MAMH = "int";
     mh1.STCLT = 3;
     mh1.STCTH = 0;
@@ -2661,14 +2582,45 @@ int main() {
     root = insertMH(root, { "300000", "CAU TRUC DU LIEU", 3, 1 });
     root = insertMH(root, { "812514", "AN TOAN HE THONG", 3, 1 });
     root = insertMH(root, { "750003", "ANH VAN A11", 2, 0 });
-
+    root = insertMH(root, { "100001", "TOAN CAO CAP", 4, 1 });
+    root = insertMH(root, { "200002", "LAP TRINH C", 3, 1 });
+    root = insertMH(root, { "300003", "LAP TRINH JAVA", 3, 1 });
+    root = insertMH(root, { "400004", "CSDL & QLHT", 3, 1 });
+    root = insertMH(root, { "500005", "KIEN TRUC MANG", 4, 1 });
+    root = insertMH(root, { "600006", "TONG HOP KI THUAT", 2, 0 });
+    root = insertMH(root, { "700007", "TOAN RANG BUOC", 4, 1 });
+    root = insertMH(root, { "800008", "TIN HOC A", 2, 0 });
+    root = insertMH(root, { "900009", "ANH VAN A12", 2, 0 });
+    root = insertMH(root, { "100010", "TOAN HOC", 4, 1 });
+    root = insertMH(root, { "110011", "THIET KE WEB", 3, 1 });
+    root = insertMH(root, { "120012", "PHAN MEM VA XU LY", 3, 1 });
+    root = insertMH(root, { "130013", "MAY TINH", 2, 0 });
+    root = insertMH(root, { "140014", "LAP TRINH C++", 3, 1 });
+    root = insertMH(root, { "150015", "HE THONG MANG", 3, 1 });
+    root = insertMH(root, { "160016", "KIEN THUC TOAN", 4, 1 });
+    root = insertMH(root, { "170017", "DU LIEU LON", 3, 1 });
+    root = insertMH(root, { "180018", "PHAN ANH", 4, 1 });
+    root = insertMH(root, { "190019", "TOAN HOC RANG BUOC", 4, 1 });
+    root = insertMH(root, { "200020", "KIEN TRUC MANG", 4, 1 });
+    root = insertMH(root, { "210021", "HE THONG THONG ", 3, 1 });
+    root = insertMH(root, { "220022", "TOAN HOC CAO CAP", 4, 1 });
+    root = insertMH(root, { "230023", "THIET KE DIEN TOAN", 3, 1 });
+    root = insertMH(root, { "240024", "MAY TINH", 2, 0 });
+    root = insertMH(root, { "250025", "LAP TRINH JAVA", 3, 1 });
+    root = insertMH(root, { "260026", "VAN HOC", 2, 0 });
+    root = insertMH(root, { "270027", "NGON NGU LAP TRINH", 3, 1 });
+    root = insertMH(root, { "280028", "ANH VAN A11", 2, 0 });
+    root = insertMH(root, { "290029", "QUAN LY KINH DOANH", 3, 1 });
+    root = insertMH(root, { "300030", "TOAN CAO CAP", 4, 1 });
+    root = insertMH(root, { "310031", "PHAN MEM ", 3, 1 });
+    root = insertMH(root, { "320032", "TIN HOC", 2, 0 });
     while (true) {
 
         boxDefault(xD, yD, wD, hD, tD, "MENU QUAN LY DIEM SINH VIEN THEO HE TIN CHI");
-        boxVuong(35, 3, 80, 22, 15);
+        boxVuong(35, 3, 80, 22, 7);
         string text[] = { "Lop Tin Chi", "Nhap lop - Nhap SV", "Nhap mon hoc", "Sinh vien DKLTC", "Nhap-In Diem sinh vien", "Thoat" };
         /*ListBox(35, 3, 80, 1, 15, 14, text, 6);*/
-        int luachon = thanhSangListBox(xL, yL, wL, hL, 11, 14, text, 6);
+        int luachon = thanhSangListBox(xL, yL, wL, hL, 7, 14, text, 6);
 
         switch (luachon) {
         case 0:
@@ -2678,7 +2630,9 @@ int main() {
             hienThiMenuChinh(dsLop);
             break;
         case 2:
+            
             NhapMonHoc(root, dsltc);
+            ShowCur(true);
             break;
         case 3:
             SVDK_LTC(dsLop, dsltc, root);
