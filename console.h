@@ -224,9 +224,6 @@ void drawListBox(int x, int y, int w, int h, string data[][4], int soDuLieu, int
 }
 
 
-
-
-
 int listBox( string data[][4], int soDuLieu,  string tieuDe[4], int ntieuDe) {
 	int totalRows = soDuLieu;
 	int sttOfTrang = 0;
