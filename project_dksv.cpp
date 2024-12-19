@@ -3031,57 +3031,56 @@ int countMonHoc(treeMH root) {
          return 1 + countMonHoc(root->left) + countMonHoc(root->right);
     }
 }
-string drawMH_InOrder(treeMH root, int x, int y, int khoangCachMoiCot[], int chonHang, int start, int end, int& index) {
-    if (root == nullptr) return "-1";
-    drawMH_InOrder(root->left, x, y, khoangCachMoiCot, chonHang, start, end, index);
+// Ham xoa cua Hoang================================================================================================
+void drawMH_InOrder(treeMH root, int x, int y, int khoangCachMoiCot[], int chonHang, int start, int end, int& index, string& mamh) {
+    if (root == nullptr) return;
+    drawMH_InOrder(root->left, x, y, khoangCachMoiCot, chonHang, start, end, index, mamh);
     if (index >= start && index < end) {
-        gotoXY(x, y + (index - start)); 
+        gotoXY(x, y + (index - start));
         if (index == chonHang) {
+            mamh = root->mh.MAMH;
             textcolor(200);
             SetColor(0);
         }
-        printf("%-*d", khoangCachMoiCot[0], index + 1);               
-        printf("%-*s", khoangCachMoiCot[1], root->mh.MAMH.c_str());   
-        printf("%-*s", khoangCachMoiCot[2], root->mh.TENMH.c_str());  
-        printf("%-*d", khoangCachMoiCot[3], root->mh.STCLT);          
-        printf("%-*d", khoangCachMoiCot[4], root->mh.STCTH);          
+        printf("%-*d", khoangCachMoiCot[0], index + 1);
+        printf("%-*s", khoangCachMoiCot[1], root->mh.MAMH.c_str());
+        printf("%-*s", khoangCachMoiCot[2], root->mh.TENMH.c_str());
+        printf("%-*d", khoangCachMoiCot[3], root->mh.STCLT);
+        printf("%-*d", khoangCachMoiCot[4], root->mh.STCTH);
         if (index == chonHang) {
             textcolor(7);
         }
         cout << endl;
     }
-    index++;  
-    drawMH_InOrder(root->right, x, y, khoangCachMoiCot, chonHang, start, end, index);
-    return root->mh.MAMH;
+    index++;
+    drawMH_InOrder(root->right, x, y, khoangCachMoiCot, chonHang, start, end, index, mamh);
+    return;
 }
-string drawMH(int x, int y, int w, int h, treeMH root, int soDuLieu, int soTrang, int chonHang, int trangBefore, string tieuDe[], int ntieuDe) {
+void drawMH(int x, int y, int w, int h, treeMH root, int soDuLieu, int soTrang, int chonHang, int trangBefore, string tieuDe[], int ntieuDe, string& mamh) {
     int khoangCachMoiCot[] = { w * 0.1, w * 0.2, w * 0.5, w * 0.1, w * 0.1 };
     gotoXY(x, y);
-    printf("%-*s", khoangCachMoiCot[0], "STT"); 
+    printf("%-*s", khoangCachMoiCot[0], "STT");
     for (int i = 0; i < ntieuDe; i++) {
         printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
     }
     cout << endl;
-    int index = 0; 
-    int start = soTrang * trangBefore;  
-    int end = min(start + trangBefore, soDuLieu); 
-    string mamh = drawMH_InOrder(root, x, y + 1, khoangCachMoiCot, chonHang, start, end, index);
-    return mamh;
+    int index = 0;
+    int start = soTrang * trangBefore;
+    int end = min(start + trangBefore, soDuLieu); drawMH_InOrder(root, x, y + 1, khoangCachMoiCot, chonHang, start, end, index, mamh);
 }
 string listBoxMH(treeMH root, int soDuLieu, string tieuDe[], int ntieuDe) {
     int totalRows = soDuLieu;
     int sttOfTrang = 0;
     int hangNgangdangChon = 0;
     ShowCur(false);
+    string mamh = "-1";
     while (true) {
-
-        string mamh = drawMH(xLB, yLB, wLB, hLB, root, soDuLieu, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe);
-
+        drawMH(37, 4, 78, 22, root, soDuLieu, sttOfTrang, hangNgangdangChon, 20, tieuDe, ntieuDe, mamh);
         int key = _getch();
         if (key == KEY_UP) {
             if (hangNgangdangChon > 0) {
                 hangNgangdangChon--;
-                if (hangNgangdangChon < sttOfTrang * soDongMoiTrang) {
+                if (hangNgangdangChon < sttOfTrang * 20) {
                     sttOfTrang--;
                 }
             }
@@ -3089,7 +3088,7 @@ string listBoxMH(treeMH root, int soDuLieu, string tieuDe[], int ntieuDe) {
         else if (key == KEY_DOWN) {
             if (hangNgangdangChon < totalRows - 1) {
                 hangNgangdangChon++;
-                if (hangNgangdangChon >= (sttOfTrang + 1) * soDongMoiTrang) {
+                if (hangNgangdangChon >= (sttOfTrang + 1) * 20) {
                     sttOfTrang++;
                     xoa_noi_dung_khung();
                 }
@@ -3106,34 +3105,44 @@ string listBoxMH(treeMH root, int soDuLieu, string tieuDe[], int ntieuDe) {
     }
 }
 void getMH(treeMH root, MonHoc& mh, string mamh) {
-	if (root == NULL) {
-		return;
-	}
-	if (root->mh.MAMH == mamh) {
-		mh = root->mh;
-		return;
-	}
-	else if (root->mh.MAMH > mamh) {
-		getMH(root->left, mh, mamh);
-	}
-	else {
-		getMH(root->right, mh, mamh);
-	}
+    if (root == NULL) {
+        return;
+    }
+    if (root->mh.MAMH == mamh) {
+        mh = root->mh;
+        return;
+    }
+    else if (root->mh.MAMH > mamh) {
+        getMH(root->left, mh, mamh);
+    }
+    else {
+        getMH(root->right, mh, mamh);
+    }
 }
+
 
 void Xoa_MH(treeMH& root, List_LTC& dsltc) {
     int index = 0;
+    SetColor(7);
     int nTieuDe = 4;
     int soDuLieu = countMonHoc(root);
     string mamh;
     string tieuDe[4] = { "MA MON", "TEN MON", "STCLT", "STCTH" };
     string chonHang;
     while (true) {
-        chonHang= listBoxMH(root, soDuLieu, tieuDe, nTieuDe);
-        if (chonHang == "-1") break;
-        else deleteMH(root, chonHang);
+        chonHang = listBoxMH(root, soDuLieu, tieuDe, nTieuDe);
+        if (chonHang == "-1") {
+            xoa_noi_dung_khung();
+            break;
+        }
+        else {
+            deleteMH(root, chonHang);
+            soDuLieu--;
+            xoa_noi_dung_khung();
+        }
     }
 }
+// End ham xoa cua Hoang=============================================================================================
 
 
 
