@@ -193,6 +193,19 @@ void xoa_noi_dung_khung() {
 	}
 	SetColor(7);
 }
+void xoa_noi_dung_khung2() {
+	int x = 35, y = 3; // T?a d? góc trên cùng c?a khung
+	int width = 78, height = 21; // Kích thu?c khung
+	// Xóa n?i dung bên trong khung (không xóa du?ng vi?n)
+	textcolor(0);
+	for (int iy = y + 1; iy <= y + height; iy++) { // Duy?t t? dòng du?i du?ng vi?n trên
+		for (int ix = x + 1; ix < x + width; ix++) { // Duy?t t? c?t bên ph?i du?ng vi?n trái
+			gotoXY(ix, iy);
+			cout << " ";
+		}
+	}
+	SetColor(7);
+}
 
 
 
