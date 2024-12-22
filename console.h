@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>  
 #include "mylib.h"
+#include <iomanip>
 using namespace std;
 int xD = 5, yD = 0, wD = 112, hD = 27, tD = 15;//thong so cho box default 
 int x = 50, y = 5;
@@ -206,71 +207,81 @@ void xoa_noi_dung_khung2() {
 	}
 	SetColor(7);
 }
-
-
-
-void drawListBox(int x, int y, int w, int h, string data[][4], int soDuLieu, int soTrang, int chonHang, int trangBefore, const string tieuDe[], int ntieuDe) {
-	int khoangCachMoiCot[] = { w * 0.1, w * 0.2, w * 0.5, w * 0.1, w * 0.1 }; 
-	gotoXY(x, y);
-	printf("%-*s", khoangCachMoiCot[0], "STT");
-	for (int i = 0; i < ntieuDe; i++) {
-		printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
+void boxBetaDefault(int x, int y, int w, int h, int text_color, string nd) {
+	SetColor(text_color);
+	if (h <= 1 || w <= 1) return;
+	for (int ix = x; ix <= x + w; ix++) {
+		gotoXY(ix, y);
+		cout << char(196);
+		gotoXY(ix, y + h);
+		cout << char(196);
 	}
-	cout << endl;
-	int start = soTrang * trangBefore;
-	int end = min(start + trangBefore, soDuLieu);
-	for (int i = start; i < end; i++) {
-		gotoXY(x, y + 1 + (i - start));
-		if (i == chonHang) {
-			textcolor(200);
-			SetColor(0);
-		}
-		printf("%-*d", khoangCachMoiCot[0], i + 1);
-		for (int j = 0; j < ntieuDe; j++) {
-			printf("%-*s", khoangCachMoiCot[j + 1], data[i][j].c_str());
-		}
-		if (i == chonHang) {
-			textcolor(7);
-		}
-		cout << endl;
+	for (int iy = y; iy <= y + h; iy++) {
+		gotoXY(x, iy);
+		cout << char(179);
+		gotoXY(x + w, iy);
+		cout << char(179);
 	}
+	gotoXY(x, y);       cout << char(218);  
+	gotoXY(x + w, y);   cout << char(191); 
+	gotoXY(x, y + h);   cout << char(192);  
+	gotoXY(x + w, y + h); cout << char(217); 
+	int ndStartX = x + (w - nd.length()) / 2; 
+	int ndStartY = y + 1;                  
+	gotoXY(ndStartX, ndStartY);
+	cout << nd;
 }
 
+void boxXacNhan(int x, int y, int w, int h, string noiDung, string luaChon1, string luaChon2, bool& xacNhan) {
 
-int listBox( string data[][4], int soDuLieu,  string tieuDe[4], int ntieuDe) {
-	int totalRows = soDuLieu;
-	int sttOfTrang = 0;
-	int hangNgangdangChon = 0;
-	ShowCur(false);
+	
+	textcolor(0);
+	for (int iy = y + 1; iy <= y + h; iy++) { 
+		for (int ix = x + 1; ix < x + w; ix++) {
+			gotoXY(ix, iy);
+			cout << " ";
+		}
+	}
+	SetColor(7);
+	boxBetaDefault(x, y, w, h, 14, noiDung); 
+
+	int luaChonHienTai = 1; 
+
 	while (true) {
 
-		drawListBox(xLB, yLB, wLB, hLB, data, soDuLieu, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe);
+		gotoXY(x + 2, y + h - 2);
+		if (luaChonHienTai == 1) {
+			SetColor(12); 
+		}
+		else {
+			SetColor(7);
+		}
+		cout << "[" << luaChon1 << "]";
 
-		int key = _getch();
-		if (key == KEY_UP) {
-			if (hangNgangdangChon > 0) {
-				hangNgangdangChon--;
-				if (hangNgangdangChon < sttOfTrang * soDongMoiTrang) {
-					sttOfTrang--;
-				}
+		gotoXY(x + w - 10, y + h - 2);
+		if (luaChonHienTai == 2) {
+			SetColor(12); 
+		}
+		else {
+			SetColor(7); 
+		}
+		cout << "[" << luaChon2 << "]";
+		if (kbhit()) {
+			char key = _getch();
+			if (key == 75) {
+				luaChonHienTai = 1;
 			}
-		}
-		else if (key == KEY_DOWN) {
-			if (hangNgangdangChon < totalRows - 1) {
-				hangNgangdangChon++;
-				if (hangNgangdangChon >= (sttOfTrang + 1) * soDongMoiTrang) {
-					sttOfTrang++;
-					xoa_noi_dung_khung();
-				}
+			else if (key == 77) {
+				luaChonHienTai = 2;
 			}
-		}
-		else if (key == KEY_ENTER) {
-			ShowCur(true);
-			return hangNgangdangChon;
-		}
-		else if (key == KEY_ESC) {
-			ShowCur(true);
-			return -1;
+			else if (key == 13) {
+				xacNhan = (luaChonHienTai == 1);
+				break;
+			}
 		}
 	}
+	SetColor(7); 
 }
+
+
+

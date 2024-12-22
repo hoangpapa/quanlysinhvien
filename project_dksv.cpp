@@ -1395,17 +1395,147 @@ void Indssvdkltc(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH& root) {
     }
 }
 
+
+
+void drawListBoxLSV(int x, int y, int w, int h, DS_LOPSV& dssv, int soDuLieu, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe, string& maSV) {
+    if (soDuLieu == 0) {
+        gotoXY(x, y + 2);
+        cout << "Danh sách rỗng!";
+        maSV = "-1";
+        return;
+    }
+    int khoangCachMoiCot[] = { w * 0.2, w * 0.4, w * 0.4 };
+    gotoXY(x, y);
+    printf("%-*s", khoangCachMoiCot[0], "STT");
+    for (int i = 0; i < ntieuDe; i++) {
+        printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
+    }
+    cout << endl;
+    int start = soTrang * soDongMoiTrang;
+    int end = min(start + soDongMoiTrang, soDuLieu);
+
+    for (int i = start; i < end; i++) {
+        gotoXY(x, y + 1 + (i - start));
+        if (i == chonHang) {
+            textcolor(225); 
+        }
+        printf("%-*d", khoangCachMoiCot[0], i + 1);
+        printf("%-*s", khoangCachMoiCot[1], dssv.nodes[i].MALOP.c_str());
+        printf("%-*s", khoangCachMoiCot[2], dssv.nodes[i].TENLOP.c_str());
+        if (i == chonHang) {
+            textcolor(7); 
+        }
+        cout << endl;
+    }
+    if (chonHang >= start && chonHang < end) {
+        maSV = dssv.nodes[chonHang].MALOP;
+    }
+    else {
+        maSV = "-1";
+    }
+}
+
+string listBoxLSV(DS_LOPSV& dssv, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
+    int totalRows = dssv.n;  
+    if (totalRows == 0) {   
+        return "-1";
+    }
+
+    int soTrang = 0;        
+    int chonHang = 0;      
+    ShowCur(false);          
+    string maSV = "-1";     
+
+    while (true) {
+        drawListBoxLSV(37, 4, 78, 22, dssv, totalRows, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe, maSV);
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == KEY_UP) {
+                if (chonHang > 0) {
+                    chonHang--;
+                    if (chonHang < soTrang * soDongMoiTrang) {
+                        soTrang--;
+                    }
+                }
+            }
+            else if (key == KEY_DOWN) {
+                if (chonHang < totalRows - 1) {
+                    chonHang++;
+                    if (chonHang >= (soTrang + 1) * soDongMoiTrang) {
+                        xoa_noi_dung_khung();
+                        soTrang++;
+                    }
+                }
+            }
+            else if (key == KEY_ENTER) {
+                ShowCur(false);
+                return maSV;
+            }
+            else if (key == KEY_ESC) {
+                ShowCur(true);
+                return "-1";
+            }
+        }
+    }
+}
+string listBoxLSVforIn(DS_LOPSV& dssv, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
+    int totalRows = dssv.n;
+    if (totalRows == 0) {
+        return "-1";
+    }
+
+    int soTrang = 0;
+    int chonHang = 0;
+    ShowCur(false);
+    string maSV = "-1";
+
+    while (true) {
+        drawListBoxLSV(37, 4, 78, 22, dssv, totalRows, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe, maSV);
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == KEY_UP) {
+                if (chonHang > 0) {
+                    chonHang--;
+                    if (chonHang < soTrang * soDongMoiTrang) {
+                        soTrang--;
+                    }
+                }
+            }
+            else if (key == KEY_DOWN) {
+                if (chonHang < totalRows - 1) {
+                    chonHang++;
+                    if (chonHang >= (soTrang + 1) * soDongMoiTrang) {
+                        xoa_noi_dung_khung();
+                        soTrang++;
+                    }
+                }
+            }
+          
+            else if (key == KEY_ESC) {
+                ShowCur(true);
+                return "-1";
+            }
+        }
+    }
+}
+
 void inDanhSachLop(DS_LOPSV& dsLop) {
     if (dsLop.n == 0) {
         cout << "Danh sach lop trong.\n";
         return;
     }
-    cout << "\n===== DANH SACH LOP =====\n";
-    cout << "STT\tMa lop\tTen lop\n";
-    for (int i = 0; i < dsLop.n; i++) {
-        cout << i + 1 << "\t" << dsLop.nodes[i].MALOP << "\t" << dsLop.nodes[i].TENLOP << "\n";
+    int soTieuDe = 2;
+    string text[] = { "Ma Lop","Ten Lop" };
+    string maLop = listBoxLSVforIn(dsLop, 20, text, soTieuDe);
+    while (true) {
+        if (maLop == "-1") {
+            xoa_noi_dung_khung2();
+            return;
+        }
     }
 }
+
+
 
 // Hàm in danh sách sinh viên
 void inDanhSachSinhVien(LopSV& lop) {
@@ -1831,7 +1961,7 @@ void xoaSinhVien(LopSV& lop) {
 
     string MASV;
     cout << "Nhap ma sinh vien can xoa: (An phim '|' de thoat) ";
-    cin.ignore();
+    /*cin.ignore();*/
     getline(cin, MASV);
     if (MASV == "|") {
         cout << "Da tra lai menu!!!\n";
@@ -2424,91 +2554,147 @@ void xoa_lop(DS_LOPSV& dsLop) {
         cout << "Danh sach lop trong.\n";
         return;
     }
-    inDanhSachLop(dsLop);
-    string MALOP;
-    cout << "Nhap ma lop can xoa (An phim '0' de tro lai): ";
-    cin.ignore();
-    getline(cin, MALOP);
-    if (MALOP == "0") {
-        cout << "Da quay tro lai menu!!!" << endl;
-        return;
-    }
-    int viTri = -1;
-    for (int i = 0; i < dsLop.n; i++) {
-        if (dsLop.nodes[i].MALOP == MALOP) {
-            viTri = i;
+    int soTieuDe = 2;
+    string text[] = { "Ma Lop", "Ten Lop" };
+    while (true) {
+        string maLop = listBoxLSV(dsLop, 20, text, soTieuDe);
+        if (maLop == "-1") {
+            xoa_noi_dung_khung2();
             return;
         }
-    }
+        int viTri = Tim_viTri_Lop(dsLop, maLop);
+        bool xacNhan;
+        boxXacNhan(40, 10, 30, 5, "Xac nhan xoa lop?", "Co", "Khong", xacNhan);
 
-    if (viTri == -1) {
-        cout << "Khong tim thay lop co ma " << MALOP << ".\n";
-    }
-    else {
-        while (1) {
-            cout << "Ban co chan muon xoa lop nay khong? (y/n)";
-            char confirm; cin >> confirm;
-            if (confirm == 'n') {
-                cout << "Da huy thao tac xoa! \n";
-                break;
-            }
-            else if (confirm == 'y' || confirm == 'Y') {
-                for (int i = viTri; i < dsLop.n - 1; i++) {
-                    dsLop.nodes[i] = dsLop.nodes[i + 1];
-                }
-                dsLop.n--;
-                cout << "Xoa lop thanh cong.\n";
-                return;
-            }
-            else {
-                cout << "Thao tac khong hop le!!!\n";
-            }
+        for (int i = viTri; i < dsLop.n - 1; i++) {
+            dsLop.nodes[i] = dsLop.nodes[i + 1];
         }
+        dsLop.n--;
+        xoa_noi_dung_khung();
     }
-    return;
-}
 
+}
 void hieu_chinh_lop(DS_LOPSV& dsLop) {
     if (dsLop.n == 0) {
         cout << "Danh sach lop trong.\n";
         return;
     }
-    inDanhSachLop(dsLop);
-    string MALOP;
-    cin.ignore();
-    cout << "Nhap ma lop can hieu chinh (An phim '0' de tro lai): ";
-    getline(cin, MALOP);
-    if (MALOP == "0") {
-        cout << "Da tro lai menu!!!" << endl;
+
+    int soTieuDe = 2;
+    string tieuDe[] = { "Ma Lop", "Ten Lop" };
+    string maLop = listBoxLSV(dsLop, 20, tieuDe, soTieuDe);
+
+    if (maLop == "-1") {
+        xoa_noi_dung_khung2();
         return;
     }
-    int viTri = -1;
-    for (int i = 0; i < dsLop.n; i++) {
-        if (dsLop.nodes[i].MALOP == MALOP) {
-            viTri = i;
-            return;
-        }
-    }
+
+    int viTri = Tim_viTri_Lop(dsLop, maLop);
     if (viTri == -1) {
-        cout << "Khong tim thay lop co ma " << MALOP << ".\n";
+        cout << "Khong tim thay lop co ma " << maLop << ".\n";
+        return;
     }
-    else {
-        LopSV& lop = dsLop.nodes[viTri];
-        cout << "Nhap ten lop moi (An phim '|' de thoat): ";
-        cin.ignore();
-        string tenMoi;
-        if (tenMoi == "|") {
-            cout << "Da thoat!!!\n";
-            return;
+
+    LopSV& lop = dsLop.nodes[viTri];
+    string newMaLop = lop.MALOP;
+    string newTenLop = lop.TENLOP;
+
+    int viTriChon = 6;
+    string text[3] = { "Sua Ma Lop: ", "Sua Ten Lop: ", "       Luu" };
+
+    ShowCur(false);
+    xoa_noi_dung_khung2(); 
+    while (true) {
+        gotoXY(65, 4);
+        SetColor(9);
+        cout << "Hieu Chinh Lop Sinh Vien";
+        for (int i = 0; i < 3; i++) {
+            gotoXY(45, 6 + i * 2);
+            if (viTriChon == 6 + i * 2) {
+                SetColor(4); 
+                cout << text[i];
+                if (i == 0) {
+                    cout << newMaLop;
+                    gotoXY(45, 6 + i * 2); cout << "             ";
+                    
+                }
+                else if (i == 1) {
+                    cout << newTenLop;
+                    gotoXY(45, 6 + i * 2); cout << "             ";
+                }
+                SetColor(7);
+            }
+            else {
+                SetColor(7);  
+                cout << text[i];
+                if (i == 0) {
+                    cout << newMaLop;
+                    gotoXY(45, 6 + i * 2); cout << "             ";
+                }
+                else if (i == 1) {
+                    cout << newTenLop;
+                    gotoXY(45, 6 + i * 2); cout << "             ";
+                }
+            }
         }
-        getline(cin, tenMoi);
-        if (tenMoi.size() > 0) {
-            lop.TENLOP = tenMoi;
+
+        if (_kbhit()) {
+            char key = _getch();
+            if (key == 72) {  
+                if (viTriChon > 6) {
+                    viTriChon -= 2;
+                }
+            }
+            else if (key == 80) {  
+                if (viTriChon < 10) {
+                    viTriChon += 2;
+                }
+            }
+            else if (key == 13) {  
+                if (viTriChon == 10) {  
+                    lop.MALOP = newMaLop;
+                    lop.TENLOP = newTenLop;
+                    gotoXY(45, 12);
+                    SetColor(10);
+                    cout << "Cap nhat thanh cong.";
+                    SetColor(7);
+                    for (int i = 0; i < 300000000; i++);  
+                    ShowCur(true);
+                    return;
+                }
+                else if (viTriChon == 6) {  
+                    while (true) {
+
+                        gotoXY(45, 12);
+                        cout << "Nhap Ma lop: "; ShowCur(true);
+                        cin >> newMaLop;
+                        cin.ignore();    
+                    }
+                   
+                    gotoXY(45, 12);
+                    cout << "                             ";
+                    ShowCur(false);
+                }
+                else if (viTriChon == 8) { 
+                    while (true) {
+                        ShowCur(true);
+                        gotoXY(45, 12);
+                        cout << "Nhap Ten Lop: ";
+                        getline(cin, newTenLop); 
+                    }
+                    gotoXY(45, 12);
+                    cout << "                              ";
+                    ShowCur(false);
+                }
+            }
+            else if (key == 27) {  
+                ShowCur(true);
+                return;
+            }
         }
-        cout << "Thong tin lop da duoc cap nhat.\n";
     }
-    return;
 }
+
 
 // Hàm qu?n lý l?p
 void capNhatLop(DS_LOPSV& dsLop) {
@@ -4356,6 +4542,20 @@ int main() {
     dsLop.nodes[0] = lop1;
     dsLop.nodes[1] = lop2;
     dsLop.nodes[2] = lop3;
+    // Khởi tạo danh sách các lớp
+  
+
+    // Tạo thêm 30 lớp
+    for (int i = 3; i < 33; i++) {
+        LopSV lop;
+        lop.MALOP = "L" + to_string(i); // Mã lớp dạng L3, L4, ...
+        lop.TENLOP = (i % 2 == 0) ? "cntt" : "mkt"; // Xen kẽ "cntt" và "mkt"
+        lop.First = nullptr; // Giả định không có sinh viên cụ thể liên kết
+
+        dsLop.nodes[i] = lop;
+        dsLop.n++;
+    }
+
 
     LopTinChi tc1;
     tc1.MALOPTC = 1;
