@@ -211,7 +211,7 @@ void drawListBoxLTC(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, in
 }
 
 int listBoxLTC(List_LTC& dsltc, const string tieuDe[], int ntieuDe, int input) {
-    int khoangCachMoiCot[] = { wLB * 0.07, wLB * 0.2, wLB * 0.18, wLB * 0.15, wLB * 0.15, wLB * 0.1, wLB * 0.1, wLB * 0.1 };
+    int khoangCachMoiCot[] = { wLB * 0.07, wLB * 0.15, wLB * 0.15, wLB * 0.15, wLB * 0.15, wLB * 0.1, wLB * 0.1, wLB * 0.1,wLB*0.1 };
     int totalRows = dsltc.n;
     int sttOfTrang = 0;
     int hangNgangdangChon = 1;
@@ -1183,11 +1183,106 @@ void inDanhSachSinhVien(List_LTC& dsltc) {
 
     
 }
+void drawListBoxDSSVDK(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe, int index, int khoangCachMoiCot[], int& viTri) {
+    SetColor(2);
+    gotoXY(x, y);
+    printf("%-*s", khoangCachMoiCot[0], "STT");
+    for (int i = 0; i < ntieuDe; i++) {
+        printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
+    }
+    SetColor(7);
+    cout << endl;
+    int start = soTrang * soDongMoiTrang;
+    int end = min(start + soDongMoiTrang, dsltc.n);
+    for (int i = start; i < end; i++) {
+        gotoXY(x, y + 1 + (i - start));
+        if (i == chonHang) {
+            viTri = index;
+            textcolor(200);
+            SetColor(0);
+        }
+        printf("%-*d", khoangCachMoiCot[0], index + 1);
+        printf("%-*d", khoangCachMoiCot[1], dsltc.nodes[i]->MALOPTC);
+        for (int i = start; i < end; i++) {
+            if (dsltc.nodes[i] == nullptr) {
+                continue; // Skip this iteration if the node is null
+            }
+            gotoXY(x, y + 1 + (i - start));
+            if (i == chonHang) {
+                viTri = index;
+                textcolor(200);
+                SetColor(0);
+            }
+            printf("%-*d", khoangCachMoiCot[0], index + 1);
+            printf("%-*d", khoangCachMoiCot[1], dsltc.nodes[i]->MALOPTC);
+        }
+        printf("%-*s", khoangCachMoiCot[2], dsltc.nodes[i]->MAMH.c_str());
+        printf("%-*s", khoangCachMoiCot[3], dsltc.nodes[i]->NienKhoa.c_str());
+        printf("%-*d", khoangCachMoiCot[4], dsltc.nodes[i]->Hocky);
+        printf("%-*d", khoangCachMoiCot[5], dsltc.nodes[i]->Nhom);
+        printf("%-*d", khoangCachMoiCot[6], dsltc.nodes[i]->sosvmin);
+        printf("%-*d", khoangCachMoiCot[7], dsltc.nodes[i]->sosvmax);
+        printf("%-*d", khoangCachMoiCot[8], DemSoSinhVien(dsltc.nodes[i]->dssvdk));
+        index++;
+        textcolor(7);
+        SetColor(7);
+    }
+}
+
+int listBoxDSSVDK(List_LTC& dsltc, const string tieuDe[], int ntieuDe) {
+    int khoangCachMoiCot[] = { wLB * 0.07, wLB * 0.15, wLB * 0.1, wLB * 0.15, wLB * 0.15, wLB * 0.1, wLB * 0.1, wLB * 0.1, wLB * 0.1 };
+    int totalRows = dsltc.n;
+    int sttOfTrang = 0;
+    int hangNgangdangChon = 1;
+    int soDongMoiTrang = 20; // Số dòng hiển thị mỗi trang
+    int viTri;
+    ShowCur(false);
+    int index = 1;
+
+    while (true) {
+        drawListBoxDSSVDK(xLB, yLB, wLB, hLB, dsltc, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe, index, khoangCachMoiCot, viTri);
+        int key = _getch();
+        if (key == KEY_UP) {
+            if (hangNgangdangChon > 1) {
+                hangNgangdangChon--;
+                if (hangNgangdangChon <= sttOfTrang * soDongMoiTrang) {
+                    sttOfTrang--;
+                    index -= soDongMoiTrang;
+                }
+            }
+        }
+        else if (key == KEY_DOWN) {
+            if (hangNgangdangChon < totalRows) {
+                hangNgangdangChon++;
+                if (hangNgangdangChon > (sttOfTrang + 1) * soDongMoiTrang) {
+                    sttOfTrang++;
+                    index += soDongMoiTrang;
+                    xoa_noi_dung_khung();
+                }
+            }
+        }
+        else if (key == KEY_ENTER) {
+            ShowCur(true);
+            return viTri;
+        }
+        else if (key == KEY_ESC) {
+            ShowCur(true);
+            return -1;
+        }
+    }
+}
+
+
 void huyLTC(List_LTC& dsltc) {
     if (dsltc.n == 0) {
         cout << "Danh sach lop tin chi rong!\n";
         return;
     }
+    int nTieuDe = 8;
+    SetColor(9);
+    int viTri;
+    string tieuDe[] = { "MaLopTC", "MaMH", "NienKhoa", "HocKy", "Nhom", "SVMIN", "SVMAX","SoSVDDK"};
+    listBoxDSSVDK(dsltc, tieuDe, nTieuDe);
     bool ok = 1;
     LopTinChi* LTC_tmp;
     for (int i = 1; i <= dsltc.n; i++) {
@@ -1507,7 +1602,7 @@ void Nhap_mamh_in_ds_svdk(string& ma, int viTriChon, treeMH& root) {
 
 void Indssvdkltc(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH& root) {
     HideCursor();
-    xoa_noi_dung_khung();
+    xoa_noi_dung_khung2();
     gotoXY(55, 4);
     SetColor(9);
     cout << "IN DANH SACH SINH VIEN DANG KY LOP TIN CHI";
@@ -1524,7 +1619,7 @@ void Indssvdkltc(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH& root) {
             if (_kbhit()) {
                 char key = getch();
                 if (key == 27) {  // Nh?n ESC d? thoát
-                    system("cls");
+                    xoa_noi_dung_khung2();
                     ShowCursor();
                     return;
                 }
@@ -2361,7 +2456,6 @@ void xoaSinhVien(LopSV& lop) {
     string tieuDe[] = { "MASV","        HO va TEN","                  PHAI","  SODT" };
     int nTieuDe = 4;
     string select; 
-    /*deleteSV(lop, select);*/
     while (true) {
         select= listBoxSV(lop.First, soDuLieu, 20, tieuDe, nTieuDe);
         if (select == "-1") {
@@ -2382,12 +2476,8 @@ void xoaSinhVien(LopSV& lop) {
 					if (xacNhan) {
                         xoa_noi_dung_khung();
 						deleteSV(lop, select);
-					}
-					else {
-                        return;
-				}
+					}		
 			}
-			
 			
            
         }
@@ -3988,7 +4078,7 @@ void HienThi_DangKyLopTinChi(string text[], int viTriChon, int viTriChon_cu, str
 }
 
 void DangKyLopTinChi(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH dsMonHoc) {
-    xoa_noi_dung_khung();
+    xoa_noi_dung_khung2();
     if (dsltc.n == 0) {
         gotoXY(50, 6);
         SetColor(4);
@@ -4500,13 +4590,13 @@ void Indssvdkltc(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH& root, int input);
     }
 
 void SVDK_LTC(DS_LOPSV& dsLop, List_LTC& dsltc, treeMH& root) {
-
     system("cls");
-    //    generateExistingData(dsLop, dsltc, root);
     boxDefault(xD, yD, wD, hD, tD, "SINH VIEN DANG KY LOP TIN CHI"); // box lớn nhất
     boxVuong(35, 3, 80, 22, 15); // box lớn bên phải
     string text[] = { "DANG KY LTC", "IN DSSVDDK", "DANH SACH LTC", "THOAT" };
     while (1) {
+        boxDefault(xD, yD, wD, hD, tD, "SINH VIEN DANG KY LOP TIN CHI"); // box lớn nhất
+        boxVuong(35, 3, 80, 22, 15); // box lớn bên phải
         int luaChon = thanhSangListBox(xL, yL, wL, hL, 11, 14, text, 4);
         switch (luaChon) {
         case 0:
