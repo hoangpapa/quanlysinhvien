@@ -2,9 +2,10 @@
 #include <cstring>  // Su dung thu vien string
 #include <cctype>  // Thu vi?n h? tr? ki?m tra k� t?
 #include <sstream>
-#include "mylib.h"
+#include "mylib.h"  
 #include "console.h"
 #include <math.h>
+#include <fstream>
 #include <iomanip>
 //#include <bits/stdc++.h>
 
@@ -111,6 +112,19 @@ bool kiemTraChuoiSo(string& input) {
     return true;
 }
 
+
+// Hàm tìm kiếm môn học theo mã
+treeMH searchMH(treeMH root, const string& mamh) {
+    if (root == NULL) return NULL;
+    if (root->mh.MAMH == mamh) return root;
+    if (root->mh.MAMH > mamh) return searchMH(root->left, mamh);
+    return searchMH(root->right, mamh);
+}
+// Hàm kiểm tra mã môn học đã tồn tại chưa
+bool isDuplicateMH(treeMH root, const string& mamh) {
+    return searchMH(root, mamh) != NULL;
+}
+
 // H�m nh?p chu?i v� ki?m tra t�nh h?p l?
 string nhapChuoiSo(string thongBao) {
     string input;
@@ -134,222 +148,436 @@ string nhapChuoiSo_2(string thongBao) {
     } while (true);
 }
 
-// Hien thi bang lop tin chi hien co
-void hienThiDanhSachLopTinChi(List_LTC& dsltc) {
-    if (dsltc.n == 0) {
-        cout << "Danh sach lop tin chi rong.\n";
-        return;
+void xoaLopTinChi_2(List_LTC& dsltc, int index) {
+    if (dsltc.nodes[index]->dssvdk != NULL) {
+        cout << "Da co sv dk ltc nay - ko the xoa!";
     }
-    cout << "\n===== DANH SACH LOP TIN CHI =====\n";
-    cout << "STT\tMaLopTC\tMaMH\tNienKhoa\tHocKy\tNhom\tSV Min\tSV Max\n";
-    for (int i = 1; i <= dsltc.n; i++) {
-        cout << i << "\t"
-            << dsltc.nodes[i]->MALOPTC << "\t"
-            << dsltc.nodes[i]->MAMH << "\t"
-            << dsltc.nodes[i]->NienKhoa << "\t"
-            << dsltc.nodes[i]->Hocky << "\t"
-            << dsltc.nodes[i]->Nhom << "\t"
-            << dsltc.nodes[i]->sosvmin << "\t"
-            << dsltc.nodes[i]->sosvmax << endl;
+    else {
+        int ok = 1;
+        char confirm;
+        do {
+            cout << "Ban co chac muon xoa lop tin chi nay khong? (y/n): ";
+            cin >> confirm;
+            cin.ignore();
+            if (confirm == 'y' || confirm == 'Y') {
+                delete dsltc.nodes[index];
+                for (int j = index; j <= dsltc.n - 1; j++) {
+                    dsltc.nodes[j] = dsltc.nodes[j + 1];
+                }
+                dsltc.n--;
+                cout << "Lop tin chi da duoc xoa thanh cong.\n";
+                return;
+            }
+            else if (confirm == 'n' || confirm == 'N') {
+                cout << "Da huy thao tac xoa!!!\n";
+                return;
+            }
+            else {
+                cout << "Vui long nhap dung cu phap!\n";
+            }
+        } while (1);
     }
 }
 
-
-bool check(string s) {
-    if (s.size() > 50) {
-        cout << "Ma mon hoc khong duoc qua 50 ki tu!!!\n";
-        return true;
+void drawListBoxLTC(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe, int index, int khoangCachMoiCot[], int& viTri) {
+    SetColor(2);
+    gotoXY(x, y);
+    printf("%-*s", khoangCachMoiCot[0], "STT");
+    for (int i = 0; i < ntieuDe; i++) {
+        printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
     }
-    for (auto x : s) {
-        if (!isdigit(x) && !isalpha(x)) {
-            cout << "Ma mon hoc khong duoc co ki tu dac biet!!!\n";
-            return true;
+    SetColor(7);
+    cout << endl;
+    int start = soTrang * soDongMoiTrang;
+    int end = min(start + soDongMoiTrang, dsltc.n);
+    for (int i = start + 1; i <= end; i++) {
+        gotoXY(x, y + (i - start));
+        if (i == chonHang) {
+            viTri = index;
+            textcolor(200);
+            SetColor(0);
+        }
+        printf("%-*d", khoangCachMoiCot[0], index);
+        printf("%-*d", khoangCachMoiCot[1], dsltc.nodes[i]->MALOPTC);
+        printf("%-*s", khoangCachMoiCot[2], dsltc.nodes[i]->MAMH.c_str());
+        printf("%-*s", khoangCachMoiCot[3], dsltc.nodes[i]->NienKhoa.c_str());
+        printf("%-*d", khoangCachMoiCot[4], dsltc.nodes[i]->Hocky);
+        printf("%-*d", khoangCachMoiCot[5], dsltc.nodes[i]->Nhom);
+        printf("%-*d", khoangCachMoiCot[6], dsltc.nodes[i]->sosvmin);
+        printf("%-*d", khoangCachMoiCot[7], dsltc.nodes[i]->sosvmax);
+        index++;
+        textcolor(7);
+    }
+}
+
+int listBoxLTC(List_LTC& dsltc, const string tieuDe[], int ntieuDe, int input) {
+    int khoangCachMoiCot[] = { wLB * 0.07, wLB * 0.2, wLB * 0.18, wLB * 0.15, wLB * 0.15, wLB * 0.1, wLB * 0.1, wLB * 0.1 };
+    int totalRows = dsltc.n;
+    int sttOfTrang = 0;
+    int hangNgangdangChon = 1;
+    int soDongMoiTrang = 20; // S? dòng hi?n th? m?i trang
+    int viTri;
+    ShowCur(false);
+    int index = 1;
+    while (true) {
+        drawListBoxLTC(xLB, yLB, wLB, hLB, dsltc, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe, index, khoangCachMoiCot, viTri);
+        int key = _getch();
+        if (key == KEY_UP) {
+            if (hangNgangdangChon > 1) {
+                hangNgangdangChon--;
+                if (hangNgangdangChon <= sttOfTrang * soDongMoiTrang) {
+                    sttOfTrang--;
+                    index -= 20;
+                }
+            }
+        }
+        else if (key == KEY_DOWN) {
+            if (hangNgangdangChon < totalRows) {
+                hangNgangdangChon++;
+                if (hangNgangdangChon > (sttOfTrang + 1) * soDongMoiTrang) {
+                    sttOfTrang++;
+                    index += 20;
+                    xoa_noi_dung_khung();
+                }
+            }
+        }
+        else if (key == KEY_ENTER && input == 0) {
+            ShowCursor();
+            return viTri;
+        }
+        else if (key == KEY_ESC) {
+            ShowCur(true);
+            return -1;
         }
     }
-    return false;
 }
 
-// Hàm tìm kiếm môn học theo mã
-treeMH searchMH(treeMH root, const string& mamh) {
-    if (root == NULL) return NULL;
-    if (root->mh.MAMH == mamh) return root;
-    if (root->mh.MAMH > mamh) return searchMH(root->left, mamh);
-    return searchMH(root->right, mamh);
-}
-
-// Hàm kiểm tra mã môn học đã tồn tại chưa
-bool isDuplicateMH(treeMH root, const string& mamh) {
-    return searchMH(root, mamh) != NULL;
-}
-
-int TimLTC(int ma, List_LTC dsltc) {
-    int left = 1;
-    int right = dsltc.n;
-    while (left <= right) {
-        int mid = (left + right) / 2;
-        if (dsltc.nodes[mid]->MALOPTC == ma) return mid;
-        else if (dsltc.nodes[mid]->MALOPTC < ma) left = mid + 1;
-        else right = mid - 1;
+void HienThi_Sua_ltc(LopTinChi& ltc, int viTriChon, int viTriChon_cu, string text[]) {
+    for (int i = 0; i < 7; i++) {
+        if (viTriChon == 8 + i * 2 || viTriChon_cu == 8 + i * 2) {
+            gotoXY(40, 8 + i * 2);
+            if (viTriChon == 8 + i * 2) SetColor(4);
+            else SetColor(7);
+            cout << text[i];
+            if (i == 0) cout << ltc.MAMH;
+            else if (i == 1) cout << ltc.NienKhoa;
+            else if (i == 2) cout << ltc.Hocky;
+            else if (i == 3) cout << ltc.Nhom;
+            else if (i == 4) cout << ltc.sosvmin;
+            else if (i == 5) cout << ltc.sosvmax;
+            SetColor(7);
+        }
     }
-    return -1;
 }
-//void drawListBoxLTC(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
-//    int khoangCachMoiCot[] = { w * 0.07, w * 0.2, w * 0.18, w * 0.15, w * 0.15, w * 0.1, w * 0.1, w * 0.1 };
-//    gotoXY(x, y);
-//    printf("%-*s", khoangCachMoiCot[0], "STT");
-//    for (int i = 0; i < ntieuDe; i++) {
-//        printf("%-*s", khoangCachMoiCot[i + 1], tieuDe[i].c_str());
-//    }
-//    cout << endl;
-//
-//    int start = soTrang * soDongMoiTrang;
-//    int end = min(start + soDongMoiTrang, dsltc.n);
-//
-//    for (int i = start; i < end; i++) {
-//        gotoXY(x, y + 1 + (i - start));
-//        if (i == chonHang) {
-//            textcolor(200);
-//            SetColor(0);
-//        }
-//        printf("%-*d", khoangCachMoiCot[0], i + 1);
-//        printf("%-*d", khoangCachMoiCot[1], dsltc.nodes[i]->MALOPTC);
-//        printf("%-*s", khoangCachMoiCot[2], dsltc.nodes[i]->MAMH.c_str());
-//        printf("%-*d", khoangCachMoiCot[3], dsltc.nodes[i]->NienKhoa);
-//        printf("%-*d", khoangCachMoiCot[4], dsltc.nodes[i]->Hocky);
-//        printf("%-*d", khoangCachMoiCot[5], dsltc.nodes[i]->Nhom);
-//        printf("%-*d", khoangCachMoiCot[6], dsltc.nodes[i]->sosvmin);
-//        printf("%-*d", khoangCachMoiCot[7], dsltc.nodes[i]->sosvmax);
-//
-//        if (i == chonHang) {
-//            textcolor(7);
-//        }
-//        cout << endl;
-//    }
-//}
-//
-//int listBoxLTC(List_LTC& dsltc, const string tieuDe[], int ntieuDe) {
-//    int totalRows = dsltc.n;
-//    int sttOfTrang = 0;
-//    int hangNgangdangChon = 0;
-//    int soDongMoiTrang = 10; // Số dòng hiển thị mỗi trang
-//    ShowCur(false);
-//
-//    while (true) {
-//        drawListBoxLTC(xLB, yLB, wLB, hLB, dsltc, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe);
-//
-//        int key = _getch();
-//        if (key == KEY_UP) {
-//            if (hangNgangdangChon > 0) {
-//                hangNgangdangChon--;
-//                if (hangNgangdangChon < sttOfTrang * soDongMoiTrang) {
-//                    sttOfTrang--;
-//                }
-//            }
-//        }
-//        else if (key == KEY_DOWN) {
-//            if (hangNgangdangChon < totalRows - 1) {
-//                hangNgangdangChon++;
-//                if (hangNgangdangChon >= (sttOfTrang + 1) * soDongMoiTrang) {
-//                    sttOfTrang++;
-//                    xoa_noi_dung_khung();
-//                }
-//            }
-//        }
-//        else if (key == KEY_ENTER) {
-//            ShowCur(true);
-//            return hangNgangdangChon;
-//        }
-//        else if (key == KEY_ESC) {
-//            ShowCur(true);
-//            return -1;
-//        }
-//    }
-//}
 
-// Xoa lop tin chi (hien thi danh sach lop tin chi truoc khi xoa) 
-//void xoaLopTinChi(List_LTC& dsltc) {
-   /* hienThiDanhSachLopTinChi(dsltc); */
-    //int nTieuDe = 7;
-    //string tieuDe[] = { "MaLopTC", "MaMH", "NienKhoa", "HocKy", "Nhom", "SVMIN", "SVMAX" };
-    //listBoxLTC(dsltc, tieuDe, nTieuDe);
-    //if (dsltc.n == 0) return;
-    //int ok = 1;
-    //do {
-    //    string input = nhapChuoiSo("Nhap ma lop tin chi muon xoa (An phim '|' de quay lai): ");
-    //    if (input == "|") return;
-    //    int MALOPTC = stoi(input);  // Chuyen chuoi thanh so
-    //    int i = TimLTC(MALOPTC, dsltc);
-    //    if (i == -1) {
-    //        cout << "Khong tim thay lop tin chi de xoa.\n";
-    //    }
-    //    else {
-    //        if (dsltc.nodes[i]->dssvdk != NULL) {
-    //            cout << "Da co sv dk ltc nay - ko the xoa!\n";
-    //        }
-    //        else {
-    //            char confirm;
-    //            do {
-    //                cout << "Ban co chac muon xoa lop tin chi nay khong? (y/n): ";
-    //                cin >> confirm;
-    //                cin.ignore();
-    //                if (confirm == 'y' || confirm == 'Y') {
-    //                    ok = 0;
-    //                    delete dsltc.nodes[i];
-    //                    for (int j = i; j <= dsltc.n - 1; j++) {
-    //                        dsltc.nodes[j] = dsltc.nodes[j + 1];
-    //                    }
-    //                    dsltc.n--;
-    //                    cout << "Lop tin chi da duoc xoa thanh cong.\n";
-    //                    break;
-    //                }
-    //                else if (confirm == 'n' || confirm == 'N') {
-    //                    cout << "Da huy thao tac xoa!!!\n";
-    //                    break;
-    //                }
-    //                else {
-    //                    cout << "Vui long nhap dung cu phap!\n";
-    //                }
-    //            } while (1);
-    //        }
-    //    }
-    //} while (ok);
-//}
-
-
-void generateFakeLTCData(List_LTC& dsltc, int numberOfRecords) {
-    for (int i = 1; i < numberOfRecords; i++) {
-        if (dsltc.n >= MAX_LTC) {
-            cout << "Danh sach Lop Tin Chi da day!" << endl;
+void Nhap_ma_mon_hoc_ltc(LopTinChi& ltc, int viTriChon, treeMH& root, int input) {
+    do {
+        SetColor(4);
+        gotoXY(40, viTriChon);
+        cout << "                               ";
+        gotoXY(40, viTriChon);
+        if (input == 0) cout << "NHAP MA MON HOC: ";
+        else if (input == 1) cout << "SUA MA MON HOC: ";
+        ShowCursor();
+        string input;
+        getline(cin, input);
+        if (input == "|") {
+            HideCursor();
             return;
         }
+        if (isDuplicateMH(root, input)) {
+            ltc.MAMH = input;
+            break;
+        }
+        gotoXY(40, 24);
+        cout << "Khong ton tai ma mon hoc nay!";
+        for (int i = 1; i <= 1000000000; i++);
+        gotoXY(40, 24);
+        cout << "                               ";
+    } while (1);
+    HideCursor();
+}
 
-        LopTinChi* newLTC = new LopTinChi();
-        newLTC->MALOPTC = 1000 + i;                // Mã lớp tín chỉ tăng dần
-        newLTC->MAMH = "MH" + to_string(i + 1);    // Mã môn học là MH1, MH2,...
-        newLTC->NienKhoa = "2022-2023";// Niên khóa như 2020-2021
-        newLTC->Hocky =  1;               // Học kỳ 1 hoặc 2
-        newLTC->Nhom = (i % 3) + 1;                // Nhóm 1, 2 hoặc 3
-        newLTC->sosvmin = 10 + (i % 5);            // Số SV tối thiểu: 10, 11, 12,...
-        newLTC->sosvmax = newLTC->sosvmin + 10;    // Số SV tối đa lớn hơn tối thiểu 10
-        newLTC->huylop = false;                    // Mặc định lớp không bị hủy
-        dsltc.nodes[dsltc.n++] = newLTC;           // Thêm lớp tín chỉ vào danh sách
+void Nhap_nien_khoa_ltc(LopTinChi& ltc, int viTriChon, int input) {
+    do {
+        SetColor(4);
+        gotoXY(40, viTriChon);
+        cout << "                               ";
+        gotoXY(40, viTriChon);
+        if (input == 0) cout << "NHAP NIEN KHOA: ";
+        else if (input == 1) cout << "SUA NIEN KHOA: ";
+        ShowCursor();
+        string input;
+        getline(cin, input);
+        if (input == "|") {
+            HideCursor();
+            return;
+        }
+        if (kiemTraNienKhoa(input)) {
+            ltc.NienKhoa = input;
+            break;
+        }
+        gotoXY(40, 24);
+        cout << "Loi: Nien khoa khong hop le. Vui long nhap lai!";
+        for (int i = 1; i <= 300000000; i++);
+        gotoXY(40, 24);
+        cout << "                                                 ";
+    } while (1);
+    HideCursor();
+};
+
+void Nhap_hoc_ki_ltc(LopTinChi& ltc, int viTriChon, int input) {
+    do {
+        SetColor(4);
+        gotoXY(40, viTriChon);
+        cout << "                               ";
+        gotoXY(40, viTriChon);
+        if (input == 0) cout << "NHAP HOC KY: ";
+        else if (input == 1) cout << "SUA HOC KY: ";
+        ShowCursor();
+        string input;
+        getline(cin, input);
+        if (input == "|") {
+            HideCursor();
+            return;
+        }
+        if (kiemTraChuoiSo(input)) {
+            ltc.Hocky = stoi(input);
+            break;
+        }
+        gotoXY(40, 24);
+        cout << "Loi: Hoc ky la so nguyen duong. Vui long nhap lai!";
+        for (int i = 1; i <= 300000000; i++);
+        gotoXY(40, 24);
+        cout << "                                                   ";
+    } while (1);
+    HideCursor();
+}
+
+void Nhap_nhom_ltc(LopTinChi& ltc, int viTriChon, int input) {
+    do {
+        SetColor(4);
+        gotoXY(40, viTriChon);
+        cout << "                               ";
+        gotoXY(40, viTriChon);
+        if (input == 0) cout << "NHAP NHOM: ";
+        else if (input == 1) cout << "SUA NHOM: ";
+        ShowCursor();
+        string input;
+        getline(cin, input);
+        if (input == "|") {
+            HideCursor();
+            return;
+        }
+        if (kiemTraChuoiSo(input)) {
+            ltc.Nhom = stoi(input);
+            break;
+        }
+        gotoXY(40, 24);
+        cout << "Loi: Nhom la so nguyen duong. Vui long nhap lai!";
+        for (int i = 1; i <= 300000000; i++);
+        gotoXY(40, 24);
+        cout << "                                                   ";
+    } while (1);
+    HideCursor();
+};
+
+void Nhap_sosvmin_ltc(LopTinChi& ltc, int viTriChon, int input) {
+        do {
+            SetColor(4);
+            gotoXY(40, viTriChon);
+            cout << "                                             ";
+            gotoXY(40, viTriChon);
+            if (input == 0) cout << "NHAP SO SINH VIEN TOI THIEU: ";
+            else if (input == 1) cout << "SUA SO SINH VIEN TOI THIEU: ";
+            ShowCursor();
+            string input;
+            getline(cin, input);
+            if (input == "|") {
+                HideCursor();
+                return;
+            }
+            if (!kiemTraChuoiSo(input)) {
+                gotoXY(40, 24);
+                cout << "Loi: So SV min la so nguyen duong. Vui long nhap lai!";
+                for (int i = 1; i <= 300000000; i++);
+                gotoXY(40, 24);
+                cout << "                                                         ";
+                continue;
+            }
+            if (ltc.sosvmax != -1) {
+                if (stoi(input) > ltc.sosvmax) {
+                    gotoXY(40, 24);
+                    cout << "Loi: So SV min khong duoc lon hon so SV max!";
+                    for (int i = 1; i <= 300000000; i++);
+                    gotoXY(40, 24);
+                    cout << "                                                         ";
+                    continue;
+                }
+            }
+            ltc.sosvmin = stoi(input);
+            break;
+        } while (1);
+    HideCursor();
+}
+
+void Nhap_sosvmax_ltc(LopTinChi& ltc, int viTriChon, int input) {
+    do {
+        SetColor(4);
+        gotoXY(40, viTriChon);
+        cout << "                                             ";
+        gotoXY(40, viTriChon);
+        if (input == 0) cout << "NHAP SO SINH VIEN TOI DA: ";
+        else if (input == 1) cout << "SUA SO SINH VIEN TOI DA: ";
+        ShowCursor();
+        string input;
+        getline(cin, input);
+        if (input == "|") {
+            HideCursor();
+            return;
+        }
+        if (!kiemTraChuoiSo(input)) {
+            gotoXY(40, 24);
+            cout << "Loi: So SV max la so nguyen duong. Vui long nhap lai!";
+            for (int i = 1; i <= 300000000; i++);
+            gotoXY(40, 24);
+            cout << "                                                         ";
+            continue;
+        }
+        if (ltc.sosvmin != -1) {
+            if (stoi(input) < ltc.sosvmin) {
+                gotoXY(40, 24);
+                cout << "Loi: So SV max khong duoc nho hon so SV min!";
+                for (int i = 1; i <= 300000000; i++);
+                gotoXY(40, 24);
+                cout << "                                                         ";
+                continue;
+            }
+        }
+        ltc.sosvmax = stoi(input);
+        break;
+    } while (1);
+    HideCursor();
+}
+
+void Sua_xoaLopTinChi(List_LTC& dsltc, treeMH& root, int input);
+void suaLopTinChi(List_LTC& dsltc, treeMH& root, int viTri) {
+    HideCursor();
+    LopTinChi ltc = *dsltc.nodes[viTri];
+    xoa_noi_dung_khung();
+    gotoXY(65, 4);
+    SetColor(9);
+    cout << "SUA LOP TIN CHI";
+    SetColor(7);
+    int viTriChon = 8;
+    string text[7] = { "SUA MA MON HOC: ", "SUA NIEN KHOA: ", "SUA HOC KY: ",
+                "SUA NHOM: ", "SUA SO SINH VIEN TOI THIEU: ", "SUA SO SINH VIEN TOI DA: ", "          ===CHON LUU===" };
+    gotoXY(40, 6);
+    SetColor(8);
+    cout << "MA LOP TIN CHI: " << ltc.MALOPTC;
+    SetColor(7);
+    for (int i = 0; i < 7; i++) {
+        gotoXY(40, 8 + i * 2);
+        SetColor(7);
+        if (viTriChon == 8 + i * 2) SetColor(4);
+        cout << text[i];
+        if (i == 0) cout << ltc.MAMH;
+        else if (i == 1) cout << ltc.NienKhoa;
+        else if (i == 2) cout << ltc.Hocky;
+        else if (i == 3) cout << ltc.Nhom;
+        else if (i == 4) cout << ltc.sosvmin;
+        else if (i == 5) cout << ltc.sosvmax;
+        SetColor(7);
+    }
+    while (true) {
+        if (_kbhit()) {
+            char key = _getch();
+            gotoXY(40, 24);
+            cout << "                                                         ";
+            if (key == 72) {
+                if (viTriChon > 8) {
+                    viTriChon -= 2;
+                    HienThi_Sua_ltc(ltc, viTriChon, viTriChon + 2, text);
+                }
+            }
+            else if (key == 80) {  // Mui tên xu?ng
+                if (viTriChon < 20) {
+                    viTriChon += 2;
+                    HienThi_Sua_ltc(ltc, viTriChon, viTriChon - 2, text);
+                }
+            }
+            else if (key == 13) {  // Nhan Enter de nhap diem
+                if (viTriChon == 20) {
+                    bool tonTai = false;
+                    for (int i = 1; i <= dsltc.n; i++) {
+                        if (ltc.MAMH == dsltc.nodes[i]->MAMH && ltc.NienKhoa == dsltc.nodes[i]->NienKhoa && ltc.Hocky
+                            == dsltc.nodes[i]->Hocky && ltc.Nhom == dsltc.nodes[i]->Nhom) {
+                            gotoXY(40, 24);
+                            SetColor(11);
+                            tonTai = true;
+                            cout << "LOP TIN CHI NAY DA TON TAI!";
+                            break;
+                        }
+                    }
+                    if (!tonTai) {
+                        dsltc.nodes[viTri] = &ltc;
+                        gotoXY(40, 24);
+                        SetColor(10);
+                        cout << "Hieu chinh lop tin chi thanh cong!";
+                        SetColor(7);
+                        for (int i = 1; i <= 370000000; i++);
+                        gotoXY(40, 24);
+                        cout << "                                                         ";
+                        Sua_xoaLopTinChi(dsltc, root, 1);
+                        return;
+                    }
+                }
+                else {
+                    int ok = -1;
+                    if (viTriChon == 8) Nhap_ma_mon_hoc_ltc(ltc, viTriChon, root, 1);
+                    else if (viTriChon == 10) Nhap_nien_khoa_ltc(ltc, viTriChon, 1);
+                    else if (viTriChon == 12) Nhap_hoc_ki_ltc(ltc, viTriChon, 1);
+                    else if (viTriChon == 14) Nhap_nhom_ltc(ltc, viTriChon, 1);
+                    else if (viTriChon == 16) Nhap_sosvmin_ltc(ltc, viTriChon, 1);
+                    else if (viTriChon == 18) Nhap_sosvmax_ltc(ltc, viTriChon, 1);
+                }
+            }
+            else if (key == 27) {  // Nh?n ESC d? thoát
+                xoa_noi_dung_khung();
+                ShowCursor();
+                return;
+            }
+        }
     }
 }
-void xoaMonHoc(List_LTC& dsltc, int index) {
 
-
-    // Giải phóng bộ nhớ nếu dùng con trỏ
-    delete dsltc.nodes[index];
-
-    // Dịch các phần tử còn lại trong danh sách
-    for (int i = index; i < dsltc.n - 1; i++) {
-        dsltc.nodes[i] = dsltc.nodes[i + 1];
+// Sua Xoa lop tin chi (hien thi danh sach lop tin chi truoc khi xoa) 
+void Sua_xoaLopTinChi(List_LTC& dsltc, treeMH& root, int input) {
+    int nTieuDe = 7;
+    SetColor(9);
+    int viTri;
+    string tieuDe[] = { "MaLopTC", "MaMH", "NienKhoa", "HocKy", "Nhom", "SVMIN", "SVMAX" };
+    while (1) {
+        viTri = listBoxLTC(dsltc, tieuDe, nTieuDe, 0);
+        if (viTri == -1) {
+            xoa_noi_dung_khung();
+            return;
+        }
+        else {
+            if (input == 0) {
+                xoaLopTinChi_2(dsltc, viTri);
+                xoa_noi_dung_khung();
+                Sua_xoaLopTinChi(dsltc, root, input);
+                return;
+            }
+            else if (input == 1) {
+                suaLopTinChi(dsltc, root, viTri);
+                xoa_noi_dung_khung();
+                Sua_xoaLopTinChi(dsltc, root, input);
+                return;
+            }
+        }
     }
-
-    // Giảm số lượng phần tử
-    dsltc.n--;
-
-    cout << "Da xoa mon hoc  " << endl;
 }
 
 void drawListBoxLTC(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
@@ -387,107 +615,75 @@ void drawListBoxLTC(int x, int y, int w, int h, List_LTC& dsltc, int soTrang, in
         cout << endl;
     }
 }
-
-int listBoxLTC(List_LTC& dsltc, const string tieuDe[], int ntieuDe) {
+string listBoxDSLTC(List_LTC& dsltc, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
     int totalRows = dsltc.n;
-    int sttOfTrang = 0;
-    int hangNgangdangChon = 0;
-    int soDongMoiTrang = 10; // Số dòng hiển thị mỗi trang
+    if (totalRows == 0) {
+        return "-1";
+    }
+
+    int soTrang = 0;
+    int chonHang = 0;
     ShowCur(false);
+    string maSV = "-1";
 
     while (true) {
-        drawListBoxLTC(xLB, yLB, wLB, hLB, dsltc, sttOfTrang, hangNgangdangChon, soDongMoiTrang, tieuDe, ntieuDe);
-
-        int key = _getch();
-        if (key == KEY_UP) {
-            if (hangNgangdangChon > 0) {
-                hangNgangdangChon--;
-                if (hangNgangdangChon < sttOfTrang * soDongMoiTrang) {
-                    sttOfTrang--;
+        drawListBoxLTC(37, 4, 78, 22, dsltc, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe);
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == KEY_UP) {
+                if (chonHang > 0) {
+                    chonHang--;
+                    if (chonHang < soTrang * soDongMoiTrang) {
+                        soTrang--;
+                    }
                 }
             }
-        }
-        else if (key == KEY_DOWN) {
-            if (hangNgangdangChon < totalRows - 1) {
-                hangNgangdangChon++;
-                if (hangNgangdangChon >= (sttOfTrang + 1) * soDongMoiTrang) {
-                    sttOfTrang++;
-                    xoa_noi_dung_khung();
+            else if (key == KEY_DOWN) {
+                if (chonHang < totalRows - 1) {
+                    chonHang++;
+                    if (chonHang >= (soTrang + 1) * soDongMoiTrang) {
+                        xoa_noi_dung_khung();
+                        soTrang++;
+                    }
                 }
             }
-        }
-        else if (key == KEY_ENTER) {
-            // Xóa môn học tại vị trí được chọn
-            xoaMonHoc(dsltc, hangNgangdangChon);
-
-            // Cập nhật lại danh sách
-            totalRows = dsltc.n;
-            if (hangNgangdangChon >= totalRows) {
-                hangNgangdangChon = totalRows - 1; // Di chuyển chọn về dòng cuối cùng
+            else if (key == KEY_ENTER) {
+                ShowCur(false);
+                return maSV;
             }
-            if (sttOfTrang * soDongMoiTrang >= totalRows) {
-                sttOfTrang = max(0, totalRows / soDongMoiTrang - 1);
-            }
-        }
-        else if (key == KEY_ESC) {
-            ShowCur(true);
-            return -1;
-        }
-    }
-}
-void SearchingBar(List_LTC& dsltc) {
-    while (true) {
-        // Hiển thị thông báo nhập mã lớp tín chỉ
-        gotoXY(10, 25);
-        string input = nhapChuoiSo("Nhap ma lop tin chi muon xoa (An phim '|' de quay lai): ");
-
-        // Kiểm tra nếu người dùng muốn thoát
-        if (input == "|") {
-            cout << "Huy bo thao tac xoa.\n";
-            return; // Thoát khỏi hàm
-        }
-
-        // Chuyển chuỗi nhập vào thành số
-        int MALOPTC;
-
-        MALOPTC = stoi(input);
-
-        int i = TimLTC(MALOPTC, dsltc);
-        if (i == -1) {
-            cout << "Khong tim thay lop tin chi de xoa.\n";
-        }
-        else {
-            // Kiểm tra nếu lớp tín chỉ đã có sinh viên đăng ký
-            if (dsltc.nodes[i]->dssvdk != NULL) {
-                cout << "Da co sinh vien dang ky lop tin chi nay - Khong the xoa!\n";
-            }
-            else {
-                // Yêu cầu xác nhận trước khi xóa
-                cout << "Ban co chac chan muon xoa lop tin chi nay? (Nhan Enter de xoa, ESC de huy)\n";
-                int key = _getch();
-                if (key == KEY_ENTER) {
-                    xoaMonHoc(dsltc, i);
-                    cout << "Lop tin chi da duoc xoa thanh cong.\n";
-                    return; // Thoát khỏi hàm sau khi xóa thành công
-                }
-                else if (key == KEY_ESC) {
-                    cout << "Huy bo thao tac xoa.\n";
-                    return; // Thoát khỏi hàm khi hủy
-                }
+            else if (key == KEY_ESC) {
+                ShowCur(true);
+                return "-1";
             }
         }
     }
 }
 
-// Xoa lop tin chi (hien thi danh sach lop tin chi truoc khi xoa) 
-void xoaLopTinChi(List_LTC& dsltc) {
-    generateFakeLTCData(dsltc, 10);
 
-    /* hienThiDanhSachLopTinChi(dsltc); */
-    int nTieuDe = 7;
-    string tieuDe[] = { "MaLopTC", "MaMH", "NienKhoa", "HocKy", "Nhom", "SVMIN", "SVMAX" };
-    listBoxLTC(dsltc, tieuDe, nTieuDe);
+bool check(string s) {
+    if (s.size() > 50) {
+        cout << "Ma mon hoc khong duoc qua 50 ki tu!!!\n";
+        return true;
+    }
+    for (auto x : s) {
+        if (!isdigit(x) && !isalpha(x)) {
+            cout << "Ma mon hoc khong duoc co ki tu dac biet!!!\n";
+            return true;
+        }
+    }
+    return false;
+}
 
+int TimLTC(int ma, List_LTC dsltc) {
+    int left = 1;
+    int right = dsltc.n;
+    while (left <= right) {
+        int mid = (left + right) / 2;
+        if (dsltc.nodes[mid]->MALOPTC == ma) return mid;
+        else if (dsltc.nodes[mid]->MALOPTC < ma) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
 }
 
 void HienThi_Them_ltc(LopTinChi& ltc, int viTriChon, int viTriChon_cu, string text[]) {
@@ -913,151 +1109,6 @@ void themLopTinChi(List_LTC& dsltc, treeMH root) {
     }
 }
 
-// Hi?u ch?nh l?p t�n ch?
-void suaLopTinChi(List_LTC& dsltc, treeMH& root) {
-    hienThiDanhSachLopTinChi(dsltc);  
-    if (dsltc.n == 0) return;
-    int ok = 1;
-    do {
-        string input = nhapChuoiSo_2("Nhap ma lop tin chi can sua (An phim '|' de quay lai): ");
-        if (input == "|") return;
-        int MALOPTC = stoi(input);
-        int i = TimLTC(MALOPTC, dsltc);
-        if (i == -1) {
-            cout << "Khong tim thay lop tin chi de sua.\n";
-        }
-        else {
-            int luaChonSua;
-            do {
-                cout << "Chon thong tin can sua:\n";
-                cout << "1. Ma mon hoc\n";
-                cout << "2. Nien khoa\n";
-                cout << "3. Hoc ky\n";
-                cout << "4. Nhom\n";
-                cout << "5. So sinh vien toi thieu\n";
-                cout << "6. So sinh vien toi da\n";
-                cout << "7. Thoat\n";
-                cout << "Nhap lua chon: ";
-                cin >> luaChonSua;
-
-                switch (luaChonSua) {
-                case 1:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap ma mon hoc moi(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            break;
-                        }
-                        if (isDuplicateMH(root, input)) {
-                            dsltc.nodes[i]->MAMH = input;
-                            cout << "Cap nhat ma mon hoc moi thanh cong!\n";
-                            break;
-                        }
-                        cout << "Khong ton tai ma mon hoc nay!!!\n";
-                    } while (1);
-                    break;
-                case 2:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap nien khoa moi (dinh dang YYYY-YYYY)(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            cout << "Da thoat!\n";
-                            break;
-                        }
-                        if (kiemTraNienKhoa(dsltc.nodes[i]->NienKhoa)) {
-                            dsltc.nodes[i]->NienKhoa = input;
-                            cout << "Cap nhap nien khoa moi thanh cong!\n";
-                            break;
-                        }
-                        cout << "Loi: Nien khoa khong hop le. Vui long nhap lai.\n";
-                    } while (1);
-                    break;
-                case 3:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap hoc ky moi(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            cout << "Da thoat!\n";
-                            break;
-                        }
-                        if (kiemTraChuoiSo(input)) {
-                            dsltc.nodes[i]->Hocky = stoi(input);
-                            cout << "Cap nhat hoc ky moi thanh cong!\n";
-                            break;
-                        }
-                        cout << "Hoc ky moi la so nguyen duong!!!\n";
-                    } while (1);
-                    break;
-                case 4:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap nhom moi(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            cout << "Da thoat!\n";
-                            break;
-                        }
-                        if (kiemTraChuoiSo(input)) {
-                            dsltc.nodes[i]->Nhom = stoi(input);
-                            cout << "Cap nhat nhom moi thanh cong!\n";
-                            break;
-                        }
-                        cout << "Nhom moi la so nguyen duong!!!\n";
-                    } while (1);
-                    break;
-                case 5:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap so sinh vien toi thieu moi(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            cout << "Da thoat!\n";
-                            break;
-                        }
-                        if (kiemTraChuoiSo(input) && stoi(input) <= dsltc.nodes[i]->sosvmax) {
-                            dsltc.nodes[i]->sosvmin = stoi(input);
-                            cout << "Da cap nhat so sv min moi thanh cong!\n";
-                            break;
-                        }
-                        if (stoi(input) > dsltc.nodes[i]->sosvmax)
-                            cout << "So sv min ko duoc lon hon so sv max\n";
-                        else cout << "So sinh vien toi thieu moi la so nguyen duong!!!\n";
-                    } while (1);
-                    break;
-                case 6:
-                    cin.ignore();
-                    do {
-                        cout << "Nhap so sinh vien toi da moi(An phim '|' de thoat): ";
-                        getline(cin, input);
-                        if (input == "|") {
-                            cout << "Da thoat!\n";
-                            break;
-                        }
-                        if (kiemTraChuoiSo(input) && stoi(input) >= dsltc.nodes[i]->sosvmin) {
-                            dsltc.nodes[i]->sosvmax = stoi(input);
-                            cout << "Da cap nhat so sv max moi thanh cong!\n";
-                            break;
-                        }
-                        if (stoi(input) < dsltc.nodes[i]->sosvmax)
-                            cout << "So sv max ko duoc nho hon so sv min\n";
-                        else cout << "So sinh vien toi da moi la so nguyen duong!!!\n";
-                    } while (1);
-                    break;
-                case 7:
-                    cout << "Thoat chinh sua.\n";
-                    break;
-                default:
-                    cout << "Lua chon khong hop le!\n";
-                }
-            } while (luaChonSua != 7);
-            ok = 0;
-            return;
-        }
-    } while (ok);
-}
 int DemSoSinhVien(PTRDK dssvdk) {
     int count = 0;
     while (dssvdk != NULL) {
@@ -1115,11 +1166,8 @@ bool chuanHoaGioiTinh(string& phai) {
     return false;
 }
 
-// Ham in thong tin sinh vien
-void inThongTinSV(SinhVien sv) {
-    cout << "Ma SV: " << sv.MASV << " | Ho Ten: " << sv.HO << " " << sv.TEN
-        << " | Gioi tinh: " << sv.PHAI << " | So DT: " << sv.SODT << "\n";
-}
+
+
 
 // Ham in danh sach sinh vien
 void inDanhSachSinhVien(List_LTC& dsltc) {
@@ -1129,10 +1177,11 @@ void inDanhSachSinhVien(List_LTC& dsltc) {
     }
     cout << "Danh sach sinh vien:\n";
     PTRSV p = dsltc.First;
-    while (p != NULL) {
-        inThongTinSV(p->sv);
-        p = p->next;
-    }
+    int soDuLieu;
+    int nTieuDe = 5;
+    string tieuDe[5] = { "MA SINH VIEN","HO","TEN","GIOI TINH","SO DT" };
+
+    
 }
 void huyLTC(List_LTC& dsltc) {
     if (dsltc.n == 0) {
@@ -1194,6 +1243,16 @@ void huyLTC(List_LTC& dsltc) {
     } while (1);
 }
 
+ //Hien thi bang lop tin chi hien co
+void hienThiDanhSachLopTinChi(List_LTC& dsltc) {
+    SetColor(9);
+    int viTri;
+    string tieuDe[] = { "MaLopTC", "MaMH", "NienKhoa", "HocKy", "Nhom", "SVMIN", "SVMAX" };
+    int* x = new int;
+    *x = listBoxLTC(dsltc, tieuDe, 7, 1);
+    delete x;
+    xoa_noi_dung_khung();
+}
 
 void MoLopTinChi(List_LTC& dsltc, treeMH& root) {
     system("cls");
@@ -1207,10 +1266,10 @@ void MoLopTinChi(List_LTC& dsltc, treeMH& root) {
             themLopTinChi(dsltc, root);
             break;
         case 1:
-            xoaLopTinChi(dsltc);
+            Sua_xoaLopTinChi(dsltc, root, 0);
             break;
         case 2:
-            suaLopTinChi(dsltc, root);
+            Sua_xoaLopTinChi(dsltc, root, 1);
             break;
         case 3:
             hienThiDanhSachLopTinChi(dsltc);
@@ -1618,8 +1677,7 @@ string listBoxLSV(DS_LOPSV& dssv, int soDongMoiTrang, const string tieuDe[], int
     int soTrang = 0;        
     int chonHang = 0;      
     ShowCur(false);          
-    string maSV = "-1";     
-
+    string maSV = "-1";  
     while (true) {
         drawListBoxLSV(37, 4, 78, 22, dssv, totalRows, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe, maSV);
         if (_kbhit()) {
@@ -1711,20 +1769,9 @@ void inDanhSachLop(DS_LOPSV& dsLop) {
 
 
 
+
 // Hàm in danh sách sinh viên
-void inDanhSachSinhVien(LopSV& lop) {
-    
-    if (lop.First == NULL) {
-        cout << "Danh sach sinh vien trong lop rong.\n";
-        return;
-    }
-    cout << "Danh sach sinh vien:\n";
-    PTRSV p = lop.First;
-    while (p != NULL) {
-        inThongTinSV(p->sv);
-        p = p->next;
-    }
-}
+
 
 // Hàm kiểm tra mã sinh viên đã tồn tại
 bool kiemTraMaSVTonTai(LopSV& lop, string MASV) {
@@ -1832,6 +1879,7 @@ void Nhap_ma_sv_sv(LopSV& lop, int viTriChon, SinhVien& sv) {
 
 void Nhap_ho_sv_sv(LopSV& lop, int viTriChon, SinhVien& sv) {
     do {
+        ShowCur(false);
         SetColor(4);
         gotoXY(40, viTriChon);
         cout << "                               ";
@@ -1851,6 +1899,7 @@ void Nhap_ho_sv_sv(LopSV& lop, int viTriChon, SinhVien& sv) {
             gotoXY(40, 24);
             cout << "                                                    ";
             continue;
+           
         }
         sv.HO = input;
         break;
@@ -1946,7 +1995,7 @@ void Nhap_sodt_sv_sv(LopSV& lop, int viTriChon, SinhVien& sv) {
     SetColor(7);
 }
 
-void tao_sv(LopSV& lop, SinhVien& sv) {
+void tao_sv(LopSV& lop, SinhVien sv) {
     PTRSV newSV = new nodeSV;
     newSV->sv = sv;
     newSV->next = NULL;
@@ -2122,6 +2171,184 @@ void themSinhVien(LopSV& lop) {
         }
     }
 }
+void drawListBoxSV(int x, int y, int w, int h, PTRSV& sv, int soDuLieu, int soTrang, int chonHang, int soDongMoiTrang, const string tieuDe[], int ntieuDe, string& maSV) {
+    if (soDuLieu == 0) {
+        gotoXY(x, y + 2);
+        cout << "Danh sách rỗng!";
+        maSV = "-1";
+        return;
+    }
+    PTRSV head = sv;
+    int khoangCachMoiCot[] = { w * 0.1, w * 0.2,w * 0.35,w * 0.1,w * 0.22};
+    gotoXY(x, y);
+    printf("%-*s", khoangCachMoiCot[0], "STT");
+    for (int i = 0; i < ntieuDe; i++) {
+        printf("%-*s", khoangCachMoiCot[i], tieuDe[i].c_str());
+    }
+    cout << endl;
+    int start = soTrang * soDongMoiTrang;
+    int end = min(start + soDongMoiTrang, soDuLieu);
+    for (int i = start; i < end; i++) {
+        gotoXY(x, y + 1 + (i - start));
+        if (i == chonHang) {
+            textcolor(225);
+        }
+        printf("%-*d", khoangCachMoiCot[0], i + 1);
+        printf("%-*s", khoangCachMoiCot[1], head->sv.MASV.c_str());
+        printf("%-*s", khoangCachMoiCot[2], (head->sv.HO + " " + head->sv.TEN).c_str());
+        printf("%-*s", khoangCachMoiCot[3], head->sv.PHAI.c_str());
+		printf("    %-*s", khoangCachMoiCot[4], head->sv.SODT.c_str());
+        if (i == chonHang) {
+            textcolor(7);
+        }
+        cout << endl;
+        head = head->next;
+    }
+    head = sv;
+    for (int i = 0; i < chonHang; i++) {
+        if (head == NULL) {
+            maSV = "-1";
+            return;
+        }
+        head = head->next;
+    }
+    if (head != NULL) {
+        maSV = head->sv.MASV;
+    }
+    else {
+        maSV = "-1";
+    }
+}
+int countSVtrongLop(PTRSV sv) {
+    int i = 0;
+    while (sv != NULL) {
+        i++;
+        sv = sv->next;
+    }
+    return i;
+}
+string listBoxSV(PTRSV sv, int soDuLieu, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
+    if (soDuLieu == 0) {
+        return "-1";
+    }
+    int soTrang = 0;
+    int chonHang = 0;
+    ShowCur(false);
+    string maSV = "-1";
+
+    while (true) {
+        drawListBoxSV(37, 4, 78, 22, sv, soDuLieu, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe, maSV);
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == KEY_UP) {
+                if (chonHang > 0) {
+                    chonHang--;
+                    if (chonHang < soTrang * soDongMoiTrang) {
+                        soTrang--;
+                    }
+                }
+            }
+            else if (key == KEY_DOWN) {
+                if (chonHang < soDuLieu - 1) {
+                    chonHang++;
+                    if (chonHang >= (soTrang + 1) * soDongMoiTrang) {
+                        xoa_noi_dung_khung();
+                        soTrang++;
+                    }
+                }
+            }
+            else if (key == KEY_ENTER) {
+                ShowCur(false);
+                return maSV;
+            }
+            else if (key == KEY_ESC) {
+                ShowCur(true);
+                return "-1";
+            }
+        }
+    }
+}
+string listBoxSVforIn(PTRSV sv, int soDuLieu, int soDongMoiTrang, const string tieuDe[], int ntieuDe) {
+    if (soDuLieu == 0) {
+        return "-1";
+    }
+    int soTrang = 0;
+    int chonHang = 0;
+    ShowCur(false);
+    string maSV = "-1";
+
+    while (true) {
+        drawListBoxSV(37, 4, 78, 22, sv, soDuLieu, soTrang, chonHang, soDongMoiTrang, tieuDe, ntieuDe, maSV);
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == KEY_UP) {
+                if (chonHang > 0) {
+                    chonHang--;
+                    if (chonHang < soTrang * soDongMoiTrang) {
+                        soTrang--;
+                    }
+                }
+            }
+            else if (key == KEY_DOWN) {
+                if (chonHang < soDuLieu - 1) {
+                    chonHang++;
+                    if (chonHang >= (soTrang + 1) * soDongMoiTrang) {
+                        xoa_noi_dung_khung();
+                        soTrang++;
+                    }
+                }
+            }
+            else if (key == KEY_ESC) {
+                ShowCur(true);
+                return "-1";
+            }
+        }
+    }
+}
+
+SinhVien* Timsv(DS_LOPSV& dsLopSV, string maSV) {
+   for (int i = 0; i < dsLopSV.n; ++i) {
+       SinhVien* a = searchSV(dsLopSV.nodes[i], maSV);
+       if (a != NULL) {
+           return a;
+       }
+   }
+   return NULL;
+}
+
+void deleteSV(LopSV & lop, string maSV) {
+        if (lop.First == NULL) {
+            cout << "Danh sach sinh vien rong, khong co gi de xoa.\n";
+            return;
+        }
+
+        PTRSV prev = NULL, curr = lop.First;
+
+        // Tìm sinh viên cần xóa
+        while (curr != NULL && curr->sv.MASV != maSV) {
+            prev = curr;
+            curr = curr->next;
+        }
+
+        if (curr == NULL) {
+
+            return;
+        }
+
+        
+        if (prev == NULL) {
+            lop.First = curr->next;
+        }
+        else {
+            prev->next = curr->next;
+        }
+
+        delete curr;  
+        
+    }
+
+
+
 
 
 // Hàm xóa sinh viên khỏi lớp (in danh sách trước khi nhập mã)
@@ -2130,290 +2357,174 @@ void xoaSinhVien(LopSV& lop) {
         cout << "Danh sach sinh vien rong, khong co gi de xoa.\n";
         return;
     }
-
-    // In danh sách sinh viên trước khi xóa
-    inDanhSachSinhVien(lop);
-
-    string MASV;
-    cout << "Nhap ma sinh vien can xoa: (An phim '|' de thoat) ";
-    /*cin.ignore();*/
-    getline(cin, MASV);
-    if (MASV == "|") {
-        cout << "Da tra lai menu!!!\n";
-        return;
+    int soDuLieu = countSVtrongLop(lop.First);
+    string tieuDe[] = { "MASV","        HO va TEN","                  PHAI","  SODT" };
+    int nTieuDe = 4;
+    string select; 
+    /*deleteSV(lop, select);*/
+    while (true) {
+        select= listBoxSV(lop.First, soDuLieu, 20, tieuDe, nTieuDe);
+        if (select == "-1") {
+            xoa_noi_dung_khung();
+            break;
+        }
+        else {
+            int viTri;
+            bool xacNhan;
+            boxXacNhan(40, 10, 30, 5, "Xac nhan xoa SV?", "Co", "Khong", xacNhan);
+			if (xacNhan) {
+				viTri = 0;
+				PTRSV p = lop.First;
+				while (p != NULL && p->sv.MASV != select) {
+					p = p->next;
+					viTri++;
+				}
+					if (xacNhan) {
+                        xoa_noi_dung_khung();
+						deleteSV(lop, select);
+					}
+					else {
+                        return;
+				}
+			}
+			
+			
+           
+        }
     }
 
-    PTRSV prev = NULL, curr = lop.First;
-
-    // Tìm sinh viên cần xóa
-    while (curr != NULL && curr->sv.MASV != MASV) {
-        prev = curr;
-        curr = curr->next;
-    }
-
-    if (curr == NULL) {
-        cout << "Khong tim thay sinh vien co ma " << MASV << " trong danh sach.\n";
-        return;
-    }
-
-    char confirm;
-    cout << "Ban co chac chan muon xoa sinh vien co ma " << MASV << "? (y/n): ";
-    cin >> confirm;
-    if (confirm != 'y' && confirm != 'Y') {
-        cout << "Huy xoa sinh vien.\n";
-        return;
-    }
-
-    // Xóa sinh viên và giải phóng bộ nhớ
-    if (prev == NULL) {  // Nếu sinh viên cần xóa là nút đầu tiên
-        lop.First = curr->next;
-    }
-    else {
-        prev->next = curr->next;
-    }
-
-    delete curr;  // Giải phóng bộ nhớ cho sinh viên vừa xóa
-    cout << "Da xoa sinh vien co ma " << MASV << ".\n";
 }
 
-// Hàm hiệu chỉnh thông tin sinh viên (in danh sách trước khi nhập mã và kiểm tra lỗi nhập liệu)
-void hieuChinhSinhVien(LopSV& lop) {
+void sua_SV(LopSV& lop, string maSV) {
+    xoa_noi_dung_khung2();
     if (lop.First == NULL) {
-        cout << "Danh sach sinh vien trong lop rong.\n";
+        gotoXY(35, 10);
+        cout << "Danh sach sinh vien rong, khong co gi de sua.\n";
         return;
     }
 
-    // In danh sách sinh viên trước khi hiệu chỉnh
-    inDanhSachSinhVien(lop);
-
-    string MASV;
-    cout << "Nhap ma sinh vien can hieu chinh: (An phim '|' de thoat) ";
-    cin.ignore();
-    getline(cin, MASV);
-    if (MASV == "|") {
-        cout << "Da tro lai menu!!!" << endl;
-        return;
-    }
     PTRSV p = lop.First;
-
-    // Tìm sinh viên cần hiệu chỉnh
-    while (p != NULL && p->sv.MASV != MASV) {
+    while (p != NULL && p->sv.MASV != maSV) {
         p = p->next;
     }
 
     if (p == NULL) {
-        cout << "Khong tim thay sinh vien co ma " << MASV << " trong danh sach.\n";
+        cout << "Khong tim thay sinh vien voi ma " << maSV << ".\n";
         return;
     }
+   
+    SinhVien* sv = &p->sv;
+    int viTriChon = 6;
+    SetColor(2);
+    gotoXY(60, 4);
+    cout << "SUA THONG TIN SINH VIEN ";
+    string text[6] = { "NHAP MA SINH VIEN: ","NHAP HO SINH VIEN: ", "NHAP TEN SINH VIEN: ",
+                       "NHAP GIOI TINH SINH VIEN: ", "NHAP SO DIEN THOAI SINH VIEN: ", "        CAP NHAT      " };
 
-    // Hiệu chỉnh thông tin sinh viên
-    string LuaChon;
 
-    do {
-        cout << "Chon thong tin can sua:\n";
-        cout << "1. Ho sinh vien\n";
-        cout << "2. Ten sinh vien\n";
-        cout << "3. Gioi tinh sinh vien\n";
-        cout << "4. So dien thoai sinh vien\n";
-        cout << "5. Thoat\n";
-        cout << "Nhap lua chon: ";
-        cin >> LuaChon;
-        cin.ignore();
-        if (LuaChon.size() != 1) {
-            cout << "Lua chon khong hop le\n";
-        }
-        else if (LuaChon != "1" && LuaChon != "2" && LuaChon != "3"
-            && LuaChon != "4" && LuaChon != "5") {
-            cout << "Lua chon khong hop le\n";
-        }
-        else {
-            int input = stoi(LuaChon);
-            switch (input) {
-            case 1:
-            {
-                bool ok;
-                do {
-                    ok = false;
-                    cout << "Nhap ho moi: (An phim '0' de thoat) ";
-                    cin.ignore();
-                    string HoMoi;
-                    getline(cin, HoMoi);
-                    if (HoMoi == "0") {
-                        cout << "Da thoat!!!\n";
-                        ok = false;
-                    }
-                    else {
-                        if (!kiemTraTenHo(HoMoi)) {
-                            cout << "Loi: Ho chi duoc chua chu cai. Vui long nhap lai!\n";
-                            ok = true;
-                        }
-                        else {
-                            p->sv.HO = HoMoi;
-                            cout << "Cap nhat thanh cong\n";
-                        }
-                    }
-                } while (ok);
-                PTRSV tmp = lop.First;
-                if (tmp == p) {
-                    lop.First = lop.First->next;
-                }
-                else {
-                    while (tmp->next != p) {
-                        tmp = tmp->next;
-                    }
-                    tmp->next = tmp->next->next;
-                }
-                if (lop.First == NULL) {
-                    lop.First = p;
-                }
-                else {
-                    PTRSV tmp2 = lop.First;
-                    PTRSV prev_tmp = NULL;
-                    while (tmp2 != NULL) {
-                        if (tmp->sv.TEN < p->sv.TEN) {
-                            prev_tmp = tmp2;
-                            tmp2 = tmp2->next;
-                        }
-                        else if (tmp2->sv.TEN == p->sv.TEN) {
-                            if (tmp2->sv.HO < p->sv.HO) {
-                                prev_tmp = tmp2;
-                                tmp2 = tmp2->next;
-                            }
-                        }
-                        else break;
-                    }
-                    if (prev_tmp != NULL) {
-                        p->next = tmp;
-                        prev_tmp->next = p;
-                    }
-                    else {
-                        p->next = lop.First;
-                        lop.First = p;
-                    }
-                }
-                break;
-            }
-            case 2:
-            {
-                bool ok;
-                do {
-                    ok = false;
-                    cout << "Nhap ten moi: (An phim '0' de thoat) ";
-                    cin.ignore();
-                    string TenMoi;
-                    getline(cin, TenMoi);
-                    if (TenMoi == "0") {
-                        cout << "Da thoat!!!\n";
-                        ok = false;
-                    }
-                    else {
-                        if (!kiemTraTenHo(TenMoi)) {
-                            cout << "Loi: Ten chi duoc chua chu cai. Vui long nhap lai!\n";
-                            ok = true;
-                        }
-                        else {
-                            p->sv.TEN = TenMoi;
-                            cout << "Cap nhat thanh cong\n";
-                        }
-                    }
-                } while (ok);
-                PTRSV tmp = lop.First;
-                if (tmp == p) {
-                    lop.First = lop.First->next;
-                }
-                else {
-                    while (tmp->next != p) {
-                        tmp = tmp->next;
-                    }
-                    tmp->next = tmp->next->next;
-                }
-                if (lop.First == NULL) {
-                    lop.First = p;
-                }
-                else {
-                    PTRSV tmp2 = lop.First;
-                    PTRSV prev_tmp = NULL;
-                    while (tmp2 != NULL) {
-                        if (tmp2->sv.TEN < p->sv.TEN) {
-                            prev_tmp = tmp2;
-                            tmp2 = tmp2->next;
-                        }
-                        else if (tmp2->sv.TEN == p->sv.TEN) {
-                            if (tmp2->sv.HO < p->sv.HO) { 
-                                prev_tmp = tmp2;
-                                tmp2 = tmp2->next;
-                            }
-                        }
-                        else break;
-                    }
-                    if (prev_tmp != NULL) {
-                        p->next = tmp;
-                        prev_tmp->next = p;
-                    }
-                    else {
-                        p->next = lop.First;
-                        lop.First = p;
-                    }
-                }
-                break;
-            }
+    for (int i = 0; i < 6; i++) {
+        gotoXY(40, 6 + i * 2);
+        SetColor(7);
+        if (viTriChon == 6 + i * 2) SetColor(4);
+        cout << text[i];
+        if (i == 0) cout << sv->MASV;
+        else if (i == 1) cout << sv->HO;
+        else if (i == 2) cout << sv->TEN;
+        else if (i == 3) cout << sv->PHAI;
+        else if (i == 4) cout << sv->SODT;
+        SetColor(7);
+    }
 
-            case 3:
-            {
-                bool ok;
-                do {
-                    cout << "Nhap gioi tinh moi: (An phim '0' de thoat) ";
-                    string GT;
-                    cin.ignore();
-                    getline(cin, GT);
-                    if (GT == "0") {
-                        cout << "Da thoat!!!" << endl;
-                        ok = false;
-                    }
-                    else {
-                        ok = chuanHoaGioiTinh(GT);  // Chuyển giới tính về chuẩn
-                        if (!ok) {
-                            p->sv.PHAI = GT;
-                            cout << "Cap nhat thanh cong!\n";
-                        }
-                    }
-                } while (ok);
-                break;
+    while (true) {
+        if (_kbhit()) {
+            char key = _getch();
+            if (key == 72) {  // Mui tên lên
+                if (viTriChon > 6) {
+                    viTriChon -= 2;
+                    HienThi_Them_sv(*sv, viTriChon, viTriChon + 2, text);
+                }
             }
-            case 4:
-            {
-                bool ok;
-                cin.ignore();
-                do {
-                    ok = false;
-                    cout << "Nhap so dien thoai moi: (An phim '0' de thoat) ";
-                    string sdt;
-                    getline(cin, sdt);
-                    if (sdt == "0") {
-                        cout << "Da thoat!!!" << endl;
-                    }
-                    else {
-                        if (!kiemTraSoDienThoai(sdt)) {
-                            cout << "Loi: So dien thoai phai co 10 so. Vui long nhap lai!\n";
-                            ok = true;
-                        }
-                        else {
-                            p->sv.SODT = sdt;
-                        }
-                    }
-                } while (ok);
-                break;
+            else if (key == 80) {  // Mui tên xu?ng
+                if (viTriChon < 16) {
+                    viTriChon += 2;
+                    HienThi_Them_sv(*sv, viTriChon, viTriChon - 2, text);
+                }
             }
-            case 5:
-            {
-                cout << "Da thoat chuc nang hieu chinh\n";
+            else if (key == 13) {  // Nhan Enter de nhap mon
+                if (viTriChon == 16) {
+                    gotoXY(40, 24);
+                    SetColor(10);
+                    cout << "Cap nhat thong tin sinh vien thanh cong!";
+                    SetColor(7);
+                    for (int i = 1; i <= 370000000; i++);
+                    gotoXY(40, 24);
+                    cout << "                                                         ";
+                    return;
+                }
+                else {
+
+                    if (viTriChon == 6) {
+                        Nhap_ma_sv_sv(lop, viTriChon, *sv);
+                        ShowCur(false);
+                    }
+
+                    else if (viTriChon == 8) {
+                        Nhap_ho_sv_sv(lop, viTriChon, *sv);
+                        ShowCur(false);
+                    }
+                    else if (viTriChon == 10) {
+                        Nhap_ten_sv_sv(lop, viTriChon, *sv);
+                        ShowCur(false);
+                    }
+
+                    else if (viTriChon == 12) {
+                        Nhap_phai_sv_sv(lop, viTriChon, *sv);
+                        ShowCur(false);
+                    }
+                    else if (viTriChon == 14) {
+                        Nhap_sodt_sv_sv(lop, viTriChon, *sv);
+                        ShowCur(false);
+                    }
+
+                    else if (viTriChon == 16) {
+                        gotoXY(40, 24);
+                        SetColor(10);
+                        cout << "Cap nhat thanh cong!";
+                    }
+                }
+            }
+            else if (key == 27) {  // Nh?n ESC d? thoát
+                xoa_noi_dung_khung2();
+                ShowCursor(false);
                 return;
             }
-            }
         }
-    } while (LuaChon != "7");
+    }
 }
+     
 
+// Hàm hiệu chỉnh thông tin sinh viên (in danh sách trước khi nhập mã và kiểm tra lỗi nhập liệu)
+
+void SuaThongTinSV(LopSV& lop){
+    int soDuLieu = countSVtrongLop(lop.First);
+    string tieuDe[] = { "MASV","        HO va TEN","                  PHAI","  SODT" };
+    int nTieuDe = 4;
+    string select;
+    // hieuChinhSinhVien(lop,select);
+    while (true) {
+        select= listBoxSV(lop.First, soDuLieu, 20, tieuDe, nTieuDe);
+
+        if (select == "-1") {
+            xoa_noi_dung_khung();
+            break;
+        }
+        else {
+            sua_SV(lop,select);
+                soDuLieu--;
+            xoa_noi_dung_khung();
+        }
+    }
+}
 int Tim_viTri_Lop(DS_LOPSV& dsLop, string MALOP) {
     int viTri = -1;
     for (int i = 0; i < dsLop.n; i++) {
@@ -2446,6 +2557,7 @@ void capNhatSinhVien(DS_LOPSV& dsLop) {
             }
         }
     }
+    
     int soTieuDe = 2;
     string text[] = { "Ma Lop","Ten Lop" };
     string maLop = listBoxLSV(dsLop, 20, text, soTieuDe);
@@ -2469,7 +2581,11 @@ void capNhatSinhVien(DS_LOPSV& dsLop) {
         boxVuong(35, 3, 80, 22, 15);
         string text[5] = { "THEM SINH VIEN", "XOA SINH VIEN", "HIEU CHINH SINH VIEN", "IN DS SINH VIEN", "THOAT" };
         int luachon = thanhSangListBox(xL, yL, wL, hL, 11, 14, text, 5);
-        switch (luachon) {
+        int soDuLieu = countSVtrongLop(lop.First);
+            string tieuDe1[] = { "MASV","        HO va TEN","                  PHAI","  SODT" };
+            int nTieuDe1 = 4;
+            string select;
+        switch(luachon) {
         case 0:
             themSinhVien(lop);
             break;
@@ -2477,12 +2593,19 @@ void capNhatSinhVien(DS_LOPSV& dsLop) {
             xoaSinhVien(lop);
             break;
         case 2:
-            hieuChinhSinhVien(lop);
+            SuaThongTinSV(lop);
             break;
-        case 3: {
-            inDanhSachSinhVien(lop);
+        case 3: 
+            
+             select=listBoxSVforIn(lop.First, soDuLieu, 20, tieuDe1, nTieuDe1);
+            while (true) {
+                if (select == "-1") {
+                    xoa_noi_dung_khung2();
+                    ShowCur(false);
+                    break;
+                }
+            }
             break;
-        }
         case 4:
             if (xacNhanThoat()) {
                 system("cls");
@@ -2490,7 +2613,8 @@ void capNhatSinhVien(DS_LOPSV& dsLop) {
             }
         }
     }
-}
+    }
+
 
 
 
@@ -3458,43 +3582,6 @@ treeMH deleteMH(treeMH& root, string& mamh) {
 
 
 
-// Hàm xóa môn học
-//treeMH deleteMH(treeMH& root, string mamh) {
-//    if (root == NULL) {
-//        cout << "Ma mon hoc khong ton tai!" << endl;
-//        return NULL;
-//    }
-//    if (mamh < root->mh.MAMH) root->left = deleteMH(root->left, mamh);
-//    else if (mamh > root->mh.MAMH) root->right = deleteMH(root->right, mamh);
-//    else {
-//        if (root->left == NULL && root->right == NULL) {
-//            delete root;
-//            root = NULL;
-//        }
-//        else if (root->left == NULL) {
-//            treeMH temp = root;
-//            root = root->right;
-//            delete temp;
-//        }
-//        else if (root->right == NULL) {
-//            treeMH temp = root;
-//            root = root->left;
-//            delete temp;
-//        }
-//        else {
-//            treeMH temp = root->right;
-//            while (temp->left != NULL) {
-//                temp = temp->left;
-//            }
-//            root->mh = temp->mh;
-//            root->right = deleteMH(root->right, temp->mh.MAMH);
-//        }
-//        cout << "Xoa mon hoc thanh cong!\n";
-//    }
-//    return root;
-//}
-
-// Hàm hiệu chỉnh thông tin môn học
 
 
 int countMonHoc(treeMH root) {
@@ -3743,6 +3830,7 @@ void NhapMonHoc(treeMH& root, List_LTC& dsltc) {
         case 1:
             Xoa_MH(root, dsltc);
              
+             
             break;
         case 2:
             HieuChinhMH(root, dsltc);
@@ -3859,15 +3947,6 @@ void hienThiThongTinLopTinChi_3(treeMH DSMH, LopTinChi* ltc[], int soLuong) {
     cout << "\n====================================================\n";
 }
 
-SinhVien* Timsv(DS_LOPSV& dsLopSV, string maSV) {
-   for (int i = 0; i < dsLopSV.n; ++i) {
-       SinhVien* a = searchSV(dsLopSV.nodes[i], maSV);
-       if (a != NULL) {
-           return a;
-       }
-   }
-   return NULL;
-}
 
 void TimLopTinChiTheoNienKhoaHocKy(List_LTC& dsltc, treeMH dsMonHoc, string& nienkhoa, int hocky, string maSV) {
     LopTinChi* ltc[MAX_LTC];
@@ -4007,6 +4086,7 @@ void DangKyLopTinChi(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH dsMonHoc) {
                         cout << "Chua nhap hoc ky!";
                         for (int i = 1; i <= 300000000; i++);
                         gotoXY(40, 24);
+                        cout << "                                         ";
                         cout << "                                         ";
                         HienThi_DangKyLopTinChi(text, 13, viTriChon, nienkhoa, hocky);
                     }
@@ -4418,6 +4498,7 @@ void Indssvdkltc(List_LTC& dsltc, DS_LOPSV& dsLop, treeMH& root, int input);
             }
         }
     }
+
 void SVDK_LTC(DS_LOPSV& dsLop, List_LTC& dsltc, treeMH& root) {
 
     system("cls");
@@ -4446,8 +4527,6 @@ void SVDK_LTC(DS_LOPSV& dsLop, List_LTC& dsltc, treeMH& root) {
         }
     }
 }
-
-
 
 float Tinh_Diem_TB(string masv, List_LTC& dsltc, treeMH& root) {
     float tongdiem = 0;
@@ -4569,204 +4648,97 @@ void Nhap_In_Diem(List_LTC& dsltc, treeMH& root, DS_LOPSV& dsLop) {
    }
 }
 
+
 int main() {
     /*setConsoleBackgroundWhite();*/
     DS_LOPSV dsLop;  // Khởi tạo danh sách lớp
     List_LTC dsltc;  // Khoi tao danh sach lop tin chi
     treeMH root = NULL; //Khoi tao cay mon hoc
-    MonHoc mh1;
     
-    mh1.MAMH = "int";
-    mh1.STCLT = 3;
-    mh1.STCTH = 0;
-    mh1.TENMH = "Toan";
-
-    nodeMH nmh1;
-    nmh1.left = NULL;
-    nmh1.right = NULL;
-    nmh1.mh = mh1;
-
-    root = &nmh1;
-
-
-    SinhVien a;
-    a.HO = "Le Van";
-    a.TEN = "Dai";
-    a.MASV = "1";
-    a.PHAI = "Nam";
-    a.SODT = "0123456789";
-
-    nodeSV sv1;
-    sv1.sv = a;
-    sv1.next = NULL;
-
-    SinhVien b;
-    b.HO = "Le Van";
-    b.TEN = "Hung";
-    b.MASV = "2";
-    b.PHAI = "Nam";
-    b.SODT = "0123456789";
-
-    nodeSV sv2;
-    sv2.sv = b;
-    sv2.next = NULL;
-    sv1.next = &sv2;
-
-    SinhVien c;
-    c.HO = "Le Van";
-    c.TEN = "Vinh";
-    c.MASV = "3";
-    c.PHAI = "Nam";
-    c.SODT = "0123456789";
-
-    nodeSV sv3;
-    sv3.sv = c;
-    sv3.next = NULL;
-    sv2.next = &sv3;
-
-    SinhVien d;
-    d.HO = "Nguyen Van";
-    d.TEN = "Binh";
-    d.MASV = "4";
-    d.PHAI = "Nam";
-    d.SODT = "0123456789";
-
-    nodeSV sv4;
-    sv4.sv = d;
-    sv4.next = NULL;
-
-    SinhVien e;
-    e.HO = "Nguyen Thi";
-    e.TEN = "Xinh";
-    e.MASV = "5";
-    e.PHAI = "Nu";
-    e.SODT = "0123456789";
-
-    nodeSV sv5;
-    sv5.sv = e;
-    sv5.next = NULL;
-
-    SinhVien f;
-    f.HO = "Tran Ha";
-    f.TEN = "Linh";
-    f.MASV = "6";
-    f.PHAI = "Nu";
-    f.SODT = "0123456789";
-
-    nodeSV sv6;
-    sv6.sv = f;
-    sv6.next = NULL;
-    sv5.next = &sv6;
-
-    SinhVien g;
-    g.HO = "Vuong Thi Xinh";
-    g.TEN = "Dep";
-    g.MASV = "7";
-    g.PHAI = "Nu";
-    g.SODT = "0123456789";
-
-    nodeSV sv7;
-    sv7.sv = g;
-    sv7.next = NULL;
-    sv6.next = &sv7;
-
-    LopSV lop1;
-    lop1.MALOP = "e23";
-    lop1.TENLOP = "cntt";
-    lop1.First = &sv1;
-
-    LopSV lop2;
-    lop2.MALOP = "e24";
-    lop2.TENLOP = "cntt";
-    lop2.First = &sv4;
-
-    LopSV lop3;
-    lop3.MALOP = "m24";
-    lop3.TENLOP = "mkt";
-    lop3.First = &sv5;
-
-    dsLop.n = 3;
-    dsLop.nodes[0] = lop1;
-    dsLop.nodes[1] = lop2;
-    dsLop.nodes[2] = lop3;
-    // Khởi tạo danh sách các lớp
-  
-
-    // Tạo thêm 30 lớp
-    for (int i = 3; i < 33; i++) {
-        LopSV lop;
-        lop.MALOP = "L" + to_string(i); // Mã lớp dạng L3, L4, ...
-        lop.TENLOP = (i % 2 == 0) ? "cntt" : "mkt"; // Xen kẽ "cntt" và "mkt"
-        lop.First = nullptr; // Giả định không có sinh viên cụ thể liên kết
-
-        dsLop.nodes[i] = lop;
-        dsLop.n++;
+    ifstream nhapfile;
+    string data = "D:\\quanlysinhvien\\docfile.txt";
+    nhapfile.open(data);
+    if (!nhapfile.is_open()) {
+        cerr << "Khong mo duoc file" << endl;
+        return 1;
     }
 
+    int n;
+    string ma, ten;
+    int lt, th;
+    nhapfile >> n;
+    nhapfile.ignore();
+    for (int i = 0; i < n; i++) {
+        getline(nhapfile, ma, ',');
+        getline(nhapfile, ten, ',');
+        nhapfile >> lt;
+        nhapfile.ignore();
+        nhapfile >> th;
+        nhapfile.ignore();
+        root = insertMH(root, { ma, ten, lt, th });
+    }
 
-    LopTinChi tc1;
-    tc1.MALOPTC = 1;
-    tc1.MAMH = "int";
-    tc1.NienKhoa = "2023-2024";
-    tc1.Hocky = 2;
-    tc1.Nhom = 3;
-    tc1.sosvmin = 5;
-    tc1.sosvmax = 10;
+    nhapfile >> n;
+    nhapfile.ignore();
+    LopSV lop;
+    for (int i = 0; i < n; i++) {
+        getline(nhapfile, lop.MALOP, ',');
+        getline(nhapfile, lop.TENLOP);
+        lop.First = nullptr; // Giả định không có sinh viên có thể liên kết
+        dsLop.nodes[dsLop.n++] = lop;
+    }
 
-    dsltc.n = 1;
-    dsltc.nodes[1] = &tc1;
+    int k;
+    nhapfile >> k;
+    nhapfile.ignore();
+    for (int i = 0; i < k; i++) {
+        nhapfile >> n;
+        nhapfile.ignore();
+        string ho, phai, sdt;
+        for (int j = 0; j < n; j++) {
+            getline(nhapfile, ho, ',');
+            getline(nhapfile, ten, ',');
+            getline(nhapfile, ma, ',');
+            getline(nhapfile, phai, ',');
+            getline(nhapfile, sdt);
+            tao_sv(dsLop.nodes[i], { ma, ho, ten, phai, sdt });
+        }
+    }
 
-    DangKy dk1, dk2, dk3;
-    dk1.MASV = "1";
-    dk2.MASV = "2";
-    dk3.MASV = "3";
-    nodeDK ndk1, ndk2, ndk3;
-    ndk1.dk = dk1;
-    ndk1.next = NULL;
-    tc1.dssvdk = &ndk1;
-    ndk2.dk = dk2;
-    ndk2.next = NULL;
-    ndk1.next = &ndk2;
-    ndk3.dk = dk3;
-    ndk3.next = NULL;
-    ndk2.next = &ndk3;
-    root = insertMH(root, { "500000", "AN NINH MANG", 2, 0 });
-    root = insertMH(root, { "300000", "CAU TRUC DU LIEU", 3, 1 });
-    root = insertMH(root, { "812514", "AN TOAN HE THONG", 3, 1 });
-    root = insertMH(root, { "750003", "ANH VAN A11", 2, 0 });
-    root = insertMH(root, { "100001", "TOAN CAO CAP", 4, 1 });
-    root = insertMH(root, { "200002", "LAP TRINH C", 3, 1 });
-    root = insertMH(root, { "300003", "LAP TRINH JAVA", 3, 1 });
-    root = insertMH(root, { "400004", "CSDL & QLHT", 3, 1 });
-    root = insertMH(root, { "500005", "KIEN TRUC MANG", 4, 1 });
-    root = insertMH(root, { "600006", "TONG HOP KI THUAT", 2, 0 });
-    root = insertMH(root, { "700007", "TOAN RANG BUOC", 4, 1 });
-    root = insertMH(root, { "800008", "TIN HOC A", 2, 0 });
-    root = insertMH(root, { "900009", "ANH VAN A12", 2, 0 });
-    root = insertMH(root, { "100010", "TOAN HOC", 4, 1 });
-    root = insertMH(root, { "110011", "THIET KE WEB", 3, 1 });
-    root = insertMH(root, { "120012", "PHAN MEM VA XU LY", 3, 1 });
-    root = insertMH(root, { "130013", "MAY TINH", 2, 0 });
-    root = insertMH(root, { "140014", "LAP TRINH C++", 3, 1 });
-    root = insertMH(root, { "150015", "HE THONG MANG", 3, 1 });
-    root = insertMH(root, { "160016", "KIEN THUC TOAN", 4, 1 });
-    root = insertMH(root, { "170017", "DU LIEU LON", 3, 1 });
-    root = insertMH(root, { "180018", "PHAN ANH", 4, 1 });
-    root = insertMH(root, { "190019", "TOAN HOC RANG BUOC", 4, 1 });
-    root = insertMH(root, { "200020", "KIEN TRUC MANG", 4, 1 });
-    root = insertMH(root, { "210021", "HE THONG THONG ", 3, 1 });
-    root = insertMH(root, { "220022", "TOAN HOC CAO CAP", 4, 1 });
-    root = insertMH(root, { "230023", "THIET KE DIEN TOAN", 3, 1 });
-    root = insertMH(root, { "240024", "MAY TINH", 2, 0 });
-    root = insertMH(root, { "250025", "LAP TRINH JAVA", 3, 1 });
-    root = insertMH(root, { "260026", "VAN HOC", 2, 0 });
-    root = insertMH(root, { "270027", "NGON NGU LAP TRINH", 3, 1 });
-    root = insertMH(root, { "280028", "ANH VAN A11", 2, 0 });
-    root = insertMH(root, { "290029", "QUAN LY KINH DOANH", 3, 1 });
-    root = insertMH(root, { "300030", "TOAN CAO CAP", 4, 1 });
-    root = insertMH(root, { "310031", "PHAN MEM ", 3, 1 });
-    root = insertMH(root, { "320032", "TIN HOC", 2, 0 });
+    nhapfile >> n;
+    nhapfile.ignore();
+    for (int i = 0; i < n; i++) {
+        LopTinChi* newLTC = new LopTinChi();
+        if (dsltc.n == 0) newLTC->MALOPTC = 1;
+        else newLTC->MALOPTC = dsltc.nodes[dsltc.n]->MALOPTC + 1;
+        getline(nhapfile, newLTC->MAMH, ',');
+        getline(nhapfile, newLTC->NienKhoa, ',');
+        nhapfile >> newLTC->Hocky;
+        nhapfile.ignore();
+        nhapfile >> newLTC->Nhom;
+        nhapfile.ignore();
+        nhapfile >> newLTC->sosvmin;
+        nhapfile.ignore();
+        nhapfile >> newLTC->sosvmax;
+        nhapfile.ignore();
+        newLTC->huylop = false;
+        dsltc.nodes[++dsltc.n] = newLTC;
+    }
 
+    nhapfile >> k;
+    nhapfile.ignore();
+    for (int i = 1; i <= k; i++) {
+        nhapfile >> n;
+        nhapfile.ignore();
+        for (int j = 0; j < n; j++) {
+            PTRDK newdkltc = new nodeDK;
+            getline(nhapfile, newdkltc->dk.MASV, ',');
+            newdkltc->dk.huydangky = false;
+            newdkltc->next = dsltc.nodes[i]->dssvdk;
+            dsltc.nodes[i]->dssvdk = newdkltc;
+        }
+    }
+    nhapfile.close();
     while (true) {
 
         boxDefault(xD, yD, wD, hD, tD, "MENU QUAN LY DIEM SINH VIEN THEO HE TIN CHI");
