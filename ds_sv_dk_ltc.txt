@@ -1,0 +1,21 @@
+Nien khoa: 2023-2024Hoc ky: 1Nhom: 1Ma mon hoc: 100001
+===================================================
+N23DCCN085 || Ngo Van || Khai || Nam || 0372853975
+N23DCCN123 || Tran Van || Quoc || Nam || 0372854013
+N23DCCN099 || Bui Van || Tai || Nam || 0372853989
+N23DCCN121 || Ngo Van || Vu || Nam || 0372854011
+N23DCCN061 || Nguyen Thi || Ha || Nu || 0372853951
+N23DCCN089 || Nguyen Minh || Trung || Nam || 0372853979
+N23DCCN101 || Nguyen Thi || Van || Nu || 0372853991
+N23DCCN093 || Doan Thi || Hien || Nu || 0372853983
+N23DCCN076 || Nguyen Van || Lam || Nam || 0372853966
+N23DCCN102 || Pham Van || Khanh || Nam || 0372853992
+N23DCCN128 || Nguyen Thi || Lieu || Nu || 0372854018
+N23DCCN074 || Ngo Thi || Tuyet || Nu || 0372853964
+N22DCCN136 || Dang Van || Kiet || Nam || 0372854026
+N23DCCN103 || Nguyen Van || Nghia || Nam || 0372853993
+N23DCCN057 || Tran Thi || Ngan || Nu || 0372853947
+N23DCCN114 || Pham Hoang || Tuan || Nam || 0372854004
+N22DCCN132 || Pham Hoang || Thien || Nam || 0372854022
+N23DCCN070 || Le Thi || Nhung || Nu || 0372853960
+N23DCCN111 || Vu Minh || Duy || Nam || 0372854001

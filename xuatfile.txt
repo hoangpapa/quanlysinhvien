@@ -1,0 +1,6 @@
+Gia tri cua phan tu thu 6 la: 9
+Gia tri cua phan tu thu 5 la: 5
+Gia tri cua phan tu thu 4 la: 8
+Gia tri cua phan tu thu 3 la: 2
+Gia tri cua phan tu thu 2 la: 6
+Gia tri cua phan tu thu 1 la: 3

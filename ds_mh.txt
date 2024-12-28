@@ -1,0 +1,39 @@
+     =====DANH SACH MON HOC=====
+=====================================
+STT	MA MON HOC	TEN MON HOC		SO TIN CHI LT	SO TIN CHI TH
+1	500000          AN NINH MANG            2		0
+2	812514          AN TOAN HE THONG        3		1
+3	280028          ANH VAN A11             2		0
+4	750003          ANH VAN A11             2		0
+5	900009          ANH VAN A12             2		0
+6	300000          CAU TRUC DU LIEU        3		1
+7	400004          CSDL & QLHT             3		1
+8	170017          DU LIEU LON             3		1
+9	150015          HE THONG MANG           3		1
+10	210021          HE THONG THONG          3		1
+11	160016          KIEN THUC TOAN          4		1
+12	200020          KIEN TRUC MANG          4		1
+13	500005          KIEN TRUC MANG          4		1
+14	200002          LAP TRINH C             3		1
+15	140014          LAP TRINH C++           3		1
+16	250025          LAP TRINH JAVA          3		1
+17	300003          LAP TRINH JAVA          3		1
+18	130013          MAY TINH                2		0
+19	240024          MAY TINH                2		0
+20	270027          NGON NGU LAP TRINH      3		1
+21	180018          PHAN ANH                4		1
+22	310031          PHAN MEM                3		1
+23	120012          PHAN MEM VA XU LY       3		1
+24	290029          QUAN LY KINH DOANH      3		1
+25	230023          THIET KE DIEN TOAN      3		1
+26	110011          THIET KE WEB            3		1
+27	320032          TIN HOC                 2		0
+28	800008          TIN HOC A               2		0
+29	100001          TOAN CAO CAP            4		1
+30	300030          TOAN CAO CAP            4		1
+31	100010          TOAN HOC                4		1
+32	220022          TOAN HOC CAO CAP        4		1
+33	190019          TOAN HOC RANG BUOC      4		1
+34	700007          TOAN RANG BUOC          4		1
+35	600006          TONG HOP KI THUAT       2		0
+36	260026          VAN HOC                 2		0
